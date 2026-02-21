@@ -182,9 +182,9 @@ Main Entities (Tables)
 3. Employee (Mechanic / Staff)
 4. Service
 5. Appointment
-6. Appointment_Service
+% 6. Appointment_Service  ( Just require part of DB )
 7. Part
-8. Service_Part
+% 8. Service_Part
 9. Invoice
 10. Payment
 
