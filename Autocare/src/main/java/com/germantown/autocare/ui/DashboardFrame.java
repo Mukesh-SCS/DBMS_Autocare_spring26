@@ -21,7 +21,7 @@ public class DashboardFrame extends JFrame {
 
         // New tabs for appointments and services/parts
         tabs.addTab("Appointments", new AppointmentPanel());
-        tabs.addTab("Services & Parts", new ServicePartPanel());
+       // tabs.addTab("Services & Parts", new ServicePartPanel());  // i will uncomment later on 
 
         // New tab for Invoice & Payment UI
         tabs.addTab("Billing", new InvoicePaymentPanel());
