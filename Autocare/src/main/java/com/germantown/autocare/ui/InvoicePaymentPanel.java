@@ -1,21 +1,28 @@
-package UI;
+package com.germantown.autocare.ui;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 
-public class PaymentInvoiceUI extends JFrame {
-    // UI Components for Invoice Summary
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+/**
+ * Simple panel for viewing an invoice summary and entering a payment.
+ * (Data wiring to Invoice/Payment tables can be added later.)
+ */
+public class InvoicePaymentPanel extends JPanel {
+
     private JLabel lblInvID, lblTotal, lblStatus;
-
-    // UI Components for Payment Entry [cite: 93, 193]
     private JTextField txtPayDate, txtAmount;
     private JComboBox<String> cbMethod;
     private JButton btnSave;
 
-    public PaymentInvoiceUI() {
-        setTitle("Germantown AutoCare - Billing & Payments"); [cite: 109]
-        setSize(500, 450);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    public InvoicePaymentPanel() {
         setLayout(new BorderLayout(15, 15));
 
         // --- INVOICE SUMMARY SECTION --- [cite: 97, 197]
@@ -47,16 +54,17 @@ public class PaymentInvoiceUI extends JFrame {
         pnlPayment.add(txtAmount);
 
         pnlPayment.add(new JLabel("Payment Method:"));
-        cbMethod = new JComboBox<>(new String[]{"Cash", "Credit Card", "Debit Card", "Check"}); [cite: 154]
+        cbMethod = new JComboBox<>(new String[]{"Cash", "Credit Card", "Debit Card", "Check"});
         pnlPayment.add(cbMethod);
 
         btnSave = new JButton("Submit Payment");
 
-        // Assemble Layout
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottom.add(btnSave);
+
         add(pnlInvoice, BorderLayout.NORTH);
         add(pnlPayment, BorderLayout.CENTER);
-        add(btnSave, BorderLayout.SOUTH);
-
-        setVisible(true);
+        add(bottom, BorderLayout.SOUTH);
     }
 }
+

@@ -1,15 +1,18 @@
-package DAO;
+package com.germantown.autocare.dao;
 
-import Model.Invoice;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.germantown.autocare.config.DBConnection;
+import com.germantown.autocare.model.Invoice;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class InvoiceDAO {
     // Method to create a new invoice after an appointment is completed
     public void createInvoice(Invoice invoice) {
         String query = "INSERT INTO Invoice (Appointment_ID, Invoice_Date, Total_Amount, Payment_Status) VALUES (?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setInt(1, invoice.getAppointmentID());
             pstmt.setString(2, invoice.getInvoiceDate());
@@ -24,7 +27,7 @@ public class InvoiceDAO {
     // Method to fetch an invoice by ID for the UI summary screen
     public Invoice getInvoiceByID(int invoiceID) {
         String query = "SELECT * FROM Invoice WHERE Invoice_ID = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setInt(1, invoiceID);
             ResultSet rs = pstmt.executeQuery();

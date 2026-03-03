@@ -1,4 +1,4 @@
-package Model;
+package com.germantown.autocare.model;
 
 public class Invoice {
     private int invoiceID;
