@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Main dashboard with tabs for Customers, Vehicles, and Billing.
+ * Main dashboard with tabs for Customers, Vehicles, Appointments, Services/Parts, and Billing.
  */
 public class DashboardFrame extends JFrame {
 
@@ -18,6 +18,10 @@ public class DashboardFrame extends JFrame {
         tabs.addTab("Customers", new CustomerPanel());
         VehiclePanel vehiclePanel = new VehiclePanel();
         tabs.addTab("Vehicles", vehiclePanel);
+
+        // New tabs for appointments and services/parts
+        tabs.addTab("Appointments", new AppointmentPanel());
+        tabs.addTab("Services & Parts", new ServicePartPanel());
 
         // New tab for Invoice & Payment UI
         tabs.addTab("Billing", new InvoicePaymentPanel());

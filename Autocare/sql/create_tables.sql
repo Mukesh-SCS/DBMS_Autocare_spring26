@@ -49,15 +49,42 @@ CREATE TABLE vehicle (
 
 
 -- PART
-
+CREATE TABLE Part (
+                      Part_ID INT AUTO_INCREMENT PRIMARY KEY,
+                      Part_Name VARCHAR(100) NOT NULL,
+                      Description VARCHAR(255),
+                      Unit_Price DECIMAL(10, 2) NOT NULL,
+                      Quantity_In_Stock INT NOT NULL DEFAULT 0,
+                      Reorder_Level INT DEFAULT 0
+) ENGINE=InnoDB;
 
 -- APPOINTMENT
-
+CREATE TABLE Appointment (
+                             Appointment_ID INT AUTO_INCREMENT PRIMARY KEY,
+                             Customer_ID INT NOT NULL,
+                             Vehicle_ID INT NOT NULL,
+                             Appointment_Date DATETIME NOT NULL,
+                             Status VARCHAR(20) DEFAULT 'Scheduled',
+                             Notes VARCHAR(255),
+                             CONSTRAINT fk_appointment_customer FOREIGN KEY (Customer_ID)
+                                 REFERENCES customer(customer_id) ON DELETE CASCADE,
+                             CONSTRAINT fk_appointment_vehicle FOREIGN KEY (Vehicle_ID)
+                                 REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 -- APPOINTMENT_SERVICE (M:N)
+CREATE TABLE Appointment_Service (
+                                     Appointment_ID INT NOT NULL,
+                                     Service_ID INT NOT NULL,
+                                     Quantity INT NOT NULL DEFAULT 1,
+                                     Line_Price DECIMAL(10, 2) NOT NULL,
+                                     PRIMARY KEY (Appointment_ID, Service_ID),
+                                     CONSTRAINT fk_app_svc_appointment FOREIGN KEY (Appointment_ID)
+                                         REFERENCES Appointment(Appointment_ID) ON DELETE CASCADE,
+                                     CONSTRAINT fk_app_svc_service FOREIGN KEY (Service_ID)
+                                         REFERENCES Service(Service_ID) ON DELETE RESTRICT
+) ENGINE=InnoDB;
 
-
--- SERVICE_PART (M:N)
 
 
 -- INVOICE
