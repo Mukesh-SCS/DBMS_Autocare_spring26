@@ -61,9 +61,27 @@ CREATE TABLE vehicle (
 
 
 -- INVOICE
+CREATE TABLE Invoice (
+                         Invoice_ID INT PRIMARY KEY AUTO_INCREMENT,
+                         Appointment_ID INT NOT NULL,
+                         Invoice_Date DATE NOT NULL,
+                         Total_Amount DECIMAL(10, 2) NOT NULL,
+                         Payment_Status VARCHAR(20) DEFAULT 'Unpaid',
+                         CONSTRAINT fk_appointment FOREIGN KEY (Appointment_ID)
+                             REFERENCES Appointment(Appointment_ID)
+) ENGINE=InnoDB;
 
 
 -- PAYMENT
+CREATE TABLE Payment (
+                         Payment_ID INT PRIMARY KEY AUTO_INCREMENT,
+                         Invoice_ID INT NOT NULL,
+                         Payment_Date DATE NOT NULL,
+                         Payment_Amount DECIMAL(10, 2) NOT NULL,
+                         Payment_Method VARCHAR(50),
+                         CONSTRAINT fk_invoice FOREIGN KEY (Invoice_ID)
+                             REFERENCES Invoice(Invoice_ID)
+) ENGINE=InnoDB;
 
 
 CREATE INDEX idx_vehicle_customer ON vehicle(customer_id);
