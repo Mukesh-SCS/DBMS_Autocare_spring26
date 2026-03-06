@@ -242,4 +242,8 @@ GAMS/
 - Invoice is 1-to-1 with appointment (unique appointment_id).
 - Payment is 1-to-many with invoice.
 
+## JAR 
 
+```bash
+java -jar autocare-germantown.jar
+```
