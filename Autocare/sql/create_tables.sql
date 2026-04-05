@@ -46,6 +46,29 @@ CREATE TABLE vehicle (
 );
 
 -- SERVICE
+-- SERVICE
+CREATE TABLE service (
+    service_id                 INT AUTO_INCREMENT PRIMARY KEY,
+    service_name               VARCHAR(150) NOT NULL,
+    estimated_duration_minutes INT,
+    base_price                 DECIMAL(10, 2) NOT NULL,
+    created_at                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- EMPLOYEE
+CREATE TABLE employee (
+    employee_id  INT AUTO_INCREMENT PRIMARY KEY,
+    first_name   VARCHAR(100) NOT NULL,
+    last_name    VARCHAR(100) NOT NULL,
+    job_title    VARCHAR(100) NOT NULL,
+    email        VARCHAR(255),
+    phone        VARCHAR(20),
+    hire_date    DATE NOT NULL,
+    hourly_rate  DECIMAL(10, 2),
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
 
 
 -- PART
