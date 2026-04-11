@@ -3,6 +3,7 @@ package com.germantown.autocare.ui;
 import com.germantown.autocare.dao.CustomerDAO;
 import com.germantown.autocare.model.Customer;
 import com.germantown.autocare.util.UIHelper;
+import com.germantown.autocare.util.UiTheme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -25,21 +26,26 @@ public class CustomerPanel extends JPanel {
     public CustomerPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        UiTheme.paintPanelBackground(this);
 
         tableModel = new DefaultTableModel(COLUMNS, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
+        UiTheme.styleTable(table);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getTableHeader().setReorderingAllowed(false);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) selectRowToForm();
         });
         JScrollPane scroll = new JScrollPane(table);
+        UiTheme.styleScrollPane(scroll);
         add(scroll, BorderLayout.CENTER);
 
-        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
+        JPanel form = new JPanel(new GridLayout(5, 2, 8, 8));
+        form.setBorder(UiTheme.sectionBorder("Customer details"));
+        UiTheme.paintPanelBackground(form);
         form.add(new JLabel("First Name:"));
         firstField = new JTextField(20);
         form.add(firstField);
@@ -57,11 +63,15 @@ public class CustomerPanel extends JPanel {
         form.add(addressField);
         add(form, BorderLayout.NORTH);
 
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 10));
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 10));
+        UiTheme.paintPanelBackground(buttons);
         addBtn = new JButton("Add");
         updateBtn = new JButton("Update");
         deleteBtn = new JButton("Delete");
         clearBtn = new JButton("Clear");
+        for (JButton b : new JButton[]{addBtn, updateBtn, deleteBtn, clearBtn}) {
+            UiTheme.styleToolbarButton(b);
+        }
         addBtn.addActionListener(e -> addCustomer());
         updateBtn.addActionListener(e -> updateCustomer());
         deleteBtn.addActionListener(e -> deleteCustomer());

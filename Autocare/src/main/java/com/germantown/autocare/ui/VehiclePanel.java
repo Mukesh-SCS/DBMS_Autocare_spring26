@@ -5,6 +5,7 @@ import com.germantown.autocare.dao.VehicleDAO;
 import com.germantown.autocare.model.Customer;
 import com.germantown.autocare.model.Vehicle;
 import com.germantown.autocare.util.UIHelper;
+import com.germantown.autocare.util.UiTheme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -29,20 +30,26 @@ public class VehiclePanel extends JPanel {
     public VehiclePanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        UiTheme.paintPanelBackground(this);
 
         tableModel = new DefaultTableModel(COLUMNS, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
+        UiTheme.styleTable(table);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getTableHeader().setReorderingAllowed(false);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) selectRowToForm();
         });
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(table);
+        UiTheme.styleScrollPane(scroll);
+        add(scroll, BorderLayout.CENTER);
 
-        JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel form = new JPanel(new GridLayout(6, 2, 8, 8));
+        form.setBorder(UiTheme.sectionBorder("Vehicle details"));
+        UiTheme.paintPanelBackground(form);
         form.add(new JLabel("Customer:"));
         customerCombo = new JComboBox<>();
         customerCombo.addItem(new CustomerItem(0, "-- Select Customer --"));
@@ -65,12 +72,16 @@ public class VehiclePanel extends JPanel {
         form.add(plateField);
         add(form, BorderLayout.NORTH);
 
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 10));
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 10));
+        UiTheme.paintPanelBackground(buttons);
         addBtn = new JButton("Add");
         updateBtn = new JButton("Update");
         deleteBtn = new JButton("Delete");
         clearBtn = new JButton("Clear");
         refreshBtn = new JButton("Refresh");
+        for (JButton b : new JButton[]{addBtn, updateBtn, deleteBtn, clearBtn, refreshBtn}) {
+            UiTheme.styleToolbarButton(b);
+        }
         addBtn.addActionListener(e -> addVehicle());
         updateBtn.addActionListener(e -> updateVehicle());
         deleteBtn.addActionListener(e -> deleteVehicle());

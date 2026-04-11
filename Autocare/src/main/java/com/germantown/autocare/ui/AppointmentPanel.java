@@ -7,6 +7,7 @@ import com.germantown.autocare.model.Customer;
 import com.germantown.autocare.model.Vehicle;
 import com.germantown.autocare.service.AppointmentService;
 import com.germantown.autocare.util.UIHelper;
+import com.germantown.autocare.util.UiTheme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -40,6 +41,7 @@ public class AppointmentPanel extends JPanel {
     public AppointmentPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        UiTheme.paintPanelBackground(this);
 
         // Table
         tableModel = new DefaultTableModel(COLUMNS, 0) {
@@ -47,17 +49,20 @@ public class AppointmentPanel extends JPanel {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
-        table.setRowHeight(22);
+        UiTheme.styleTable(table);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getTableHeader().setReorderingAllowed(false);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) selectRowToForm();
         });
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        JScrollPane tableScroll = new JScrollPane(table);
+        UiTheme.styleScrollPane(tableScroll);
+        add(tableScroll, BorderLayout.CENTER);
 
         // Form
         JPanel form = new JPanel(new GridLayout(3, 4, 8, 8));
-        form.setBorder(BorderFactory.createTitledBorder("Schedule / Update Appointment"));
+        form.setBorder(UiTheme.sectionBorder("Schedule / update appointment"));
+        UiTheme.paintPanelBackground(form);
 
         form.add(new JLabel("Customer:"));
         customerCombo = new JComboBox<>();
@@ -83,11 +88,15 @@ public class AppointmentPanel extends JPanel {
 
         // Buttons
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 10));
+        UiTheme.paintPanelBackground(buttons);
         addBtn = new JButton("Schedule");
         updateStatusBtn = new JButton("Update Status");
         cancelBtn = new JButton("Cancel Appointment");
         refreshBtn = new JButton("Refresh");
         clearBtn = new JButton("Clear");
+        for (JButton b : new JButton[]{addBtn, updateStatusBtn, cancelBtn, refreshBtn, clearBtn}) {
+            UiTheme.styleToolbarButton(b);
+        }
 
         addBtn.addActionListener(e -> schedule());
         updateStatusBtn.addActionListener(e -> updateStatus());

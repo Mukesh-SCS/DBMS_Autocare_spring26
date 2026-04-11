@@ -2,6 +2,7 @@ package com.germantown.autocare.app;
 
 import com.germantown.autocare.config.DBConnection;
 import com.germantown.autocare.ui.LoginFrame;
+import com.germantown.autocare.util.UiTheme;
 
 import javax.swing.*;
 import java.sql.Connection;
@@ -30,6 +31,7 @@ public class MainApp {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ignored) {}
+            UiTheme.applyGlobal();
             LoginFrame login = new LoginFrame();
             login.setVisible(true);
         });

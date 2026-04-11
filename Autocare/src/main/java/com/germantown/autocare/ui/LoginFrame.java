@@ -1,6 +1,7 @@
 package com.germantown.autocare.ui;
 
 import com.germantown.autocare.config.DBConnection;
+import com.germantown.autocare.util.UiTheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,26 +15,34 @@ public class LoginFrame extends JFrame {
     public LoginFrame() {
         setTitle("Germantown AutoCare - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 220);
+        setSize(440, 280);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        JPanel main = new JPanel(new BorderLayout(10, 10));
-        main.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel main = new JPanel(new BorderLayout(16, 16));
+        main.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UiTheme.BORDER, 1, true),
+                BorderFactory.createEmptyBorder(28, 32, 28, 32)));
+        UiTheme.paintPanelBackground(main);
 
-        JLabel title = new JLabel("Germantown AutoCare Management System", SwingConstants.CENTER);
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        JLabel title = new JLabel("Germantown AutoCare", SwingConstants.CENTER);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
+        title.setForeground(new Color(30, 41, 59));
         main.add(title, BorderLayout.NORTH);
 
-        JPanel center = new JPanel(new GridLayout(2, 1, 0, 10));
-        JLabel sub = new JLabel("Click Login to continue.", SwingConstants.CENTER);
+        JPanel center = new JPanel(new GridLayout(3, 1, 12, 12));
+        UiTheme.paintPanelBackground(center);
+        JLabel sub = new JLabel("<html><div style='text-align:center;color:#64748b;'>Database-backed shop management.<br/>Connect to MySQL, then sign in.</div></html>", SwingConstants.CENTER);
         center.add(sub);
-        JButton loginBtn = new JButton("Login");
-        loginBtn.setPreferredSize(new Dimension(120, 32));
+        JButton loginBtn = new JButton("  Sign in  ");
+        UiTheme.stylePrimaryButton(loginBtn);
         loginBtn.addActionListener(e -> onLogin());
-        JPanel btnPanel = new JPanel();
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        UiTheme.paintPanelBackground(btnPanel);
         btnPanel.add(loginBtn);
         center.add(btnPanel);
+        JLabel hint = new JLabel("<html><div style='text-align:center;font-size:11px;color:#94a3b8;'>Requires <code>autocare_db</code> and credentials in DBConnection</div></html>", SwingConstants.CENTER);
+        center.add(hint);
         main.add(center, BorderLayout.CENTER);
 
         add(main);
