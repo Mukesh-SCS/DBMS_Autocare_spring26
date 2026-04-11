@@ -11,133 +11,94 @@ Germantown AutoCare Management System (GAMS) is a database-driven application fo
 ---
 
 ## Features
-- Customer management (add, update, delete, view history)
+- Customer management (add, update, delete, list)
 - Vehicle registration and tracking
-- Appointment scheduling and mechanic assignment
-- Service and parts inventory management
-- Invoice generation and payment tracking
-- Reporting (revenue, popular services, workload, inventory)
+- Appointment scheduling (customer, vehicle, date/time, status)
+- Service catalog and parts inventory (Services & Parts tab, wired to `ServiceDAO` / `PartDAO`)
+- Invoice creation and payment recording (Billing tab)
+- Reporting queries (see course materials / future work)
 
 ---
 
 ## Technologies Used
-- **Java 24** (Swing for GUI)
+- **Java 17** (Swing GUI; matches `Autocare/pom.xml` and CI)
 - **MySQL** (relational database)
 - **JDBC** (Java Database Connectivity)
-- **Maven** (dependency management)
-- **MySQL Connector/J**
+- **Maven** (build and dependencies)
+- **MySQL Connector/J** (bundled in the release fat JAR via Maven Shade)
 
 ---
 
-## Project Structure
+## Repository layout
 
-```bash
-GAMS/
-│
-├── README.md        # Project overview, requirements, setup instructions, and structure
-│ 
-│
-├── sql/                 #Contains all database-related SQL scripts
-│ ├── create_tables.sql
-│ ├── insert_sample_data.sql
-│ └── reports_queries.sql
-│
-├── src/
-│ └── main/
-│ └── java/
-│ └── com/
-│ └── germantown/
-│ └── autocare/
-│
-│ ├── app/
-│ │ └── MainApp.java          #
-│ │
-│ ├── config/                 # Handles MySQL database connection
-│ │ └── DBConnection.java
-│ │ 
-│ │
-│ ├── model/                   #Data model classes (POJOs) 
-│ │ ├── Customer.java
-│ │ ├── Vehicle.java
-│ │ ├── Employee.java
-│ │ ├── Service.java
-│ │ ├── Part.java
-│ │ ├── Appointment.java
-│ │ ├── Invoice.java
-│ │ └── Payment.java
-│ │
-│ ├── dao/                         #Data Access Objects (database operations)
-│ │ ├── CustomerDAO.java
-│ │ ├── VehicleDAO.java
-│ │ ├── EmployeeDAO.java
-│ │ ├── ServiceDAO.java
-│ │ ├── PartDAO.java
-│ │ ├── AppointmentDAO.java
-│ │ ├── InvoiceDAO.java
-│ │ └── PaymentDAO.java
-│ │
-│ ├── ui/                          #Java Swing user interface screens
-│ │ ├── LoginFrame.java
-│ │ ├── DashboardFrame.java
-│ │ ├── CustomerPanel.java
-│ │ ├── VehiclePanel.java
-│ │ ├── AppointmentPanel.java
-│ │ ├── ServicePartPanel.java
-│ │ ├── InvoicePaymentPanel.java
-│ │ └── ReportPanel.java
-│ │
-│ ├── service/                           #Business logic layer 
-│ │ ├── CustomerService.java
-│ │ ├── AppointmentService.java
-│ │ └── BillingService.java
-│ │
-│ └── util/
-│ Utility and helper classes
-│ ├── DateUtil.java
-│ ├── ValidationUtil.java
-│ └── UIHelper.java
-│
-└── target/
-
-
+```
+DBMS_Autocare_spring26/
+├── README.md
+├── .github/workflows/build-and-release.yml   # CI: build + release on tags
+├── Autocare/
+│   ├── pom.xml                                 # Maven project (artifact: gams, output JAR: autocare-germantown.jar)
+│   ├── sql/
+│   │   └── create_tables.sql                   # Schema (run against autocare_db)
+│   └── src/main/java/com/germantown/autocare/
+│       ├── app/MainApp.java                    # Entry point
+│       ├── config/DBConnection.java
+│       ├── model/                              # Customer, Vehicle, Employee, Service, Part, Appointment, Invoice, Payment
+│       ├── dao/                                # JDBC access per table
+│       ├── service/                            # AppointmentService, BillingService
+│       ├── ui/                                 # LoginFrame, DashboardFrame, CustomerPanel, VehiclePanel, AppointmentPanel, ServicePartPanel, InvoicePaymentPanel
+│       └── util/UIHelper.java
+└── (optional) insert_sample_data.sql           # Add if you maintain sample data scripts
 ```
 
 ---
 
 ## Setup Instructions
 
-### 1. Database Setup (MySQL)
-- Create a database named `autocare_db` in MySQL.
-- Place your table creation and sample data scripts in `Autocare/sql/` (e.g., `create_tables.sql`, `insert_sample_data.sql`).
-- Example commands:
-  - `mysql -u root -p autocare_db < create_tables.sql`
-  - `mysql -u root -p autocare_db < insert_sample_data.sql`
+### 1. Database (MySQL)
+- Create database `autocare_db` (or use the `CREATE DATABASE` in `Autocare/sql/create_tables.sql`).
+- Run the schema script (from project root, paths may vary):
 
-### 2. Java & Maven Setup
-- Ensure you have Java 24 and Maven installed.
-- Open the project in your IDE (e.g., IntelliJ IDEA).
-- Build the project with Maven:
-  - `mvn clean install`
-- Run the application:
-  - `Main.java` (entry point)
+```bash
+mysql -u root -p < "Autocare/sql/create_tables.sql"
+```
 
-### 3. Database Connection
-- Edit `DBConnection.java` if your MySQL username/password differs:
-  - Default: user=`root`, password=`admin`, database=`autocare_db`
+- Optional: add `insert_sample_data.sql` under `Autocare/sql/` if you use one.
+
+### 2. Java & Maven (local development)
+- Install **JDK 17** and **Maven**.
+- Build and run from the `Autocare` folder:
+
+```bash
+cd Autocare
+mvn clean package
+java -jar target/autocare-germantown.jar
+```
+
+Or run **`com.germantown.autocare.app.MainApp`** from your IDE.
+
+### 3. Database connection
+- Edit `Autocare/src/main/java/com/germantown/autocare/config/DBConnection.java` if your MySQL user, password, host, or database name differs.
+- Default in code is typically `root` / `admin` / `jdbc:mysql://localhost:3306/autocare_db` (adjust for your machine).
 
 ---
 
-## Usage
-- Launch the application to access the login screen.
-- Navigate through the GUI to manage customers, vehicles, appointments, services, parts, invoices, and reports.
+## GitHub Actions / release JAR
+- Workflow: `.github/workflows/build-and-release.yml` builds with JDK 17 and uploads **`autocare-germantown.jar`** (fat JAR including the MySQL driver).
+- Releases are created when you push a version tag (e.g. `v1.0.0`), not on every push to `main`.
+
+### Run the downloaded JAR
+
+```bash
+java -jar autocare-germantown.jar
+```
+
+Ensure MySQL is running and `autocare_db` exists with tables applied.
 
 ---
 
-## Notes
-- Foreign keys enforce data integrity.
-- Many-to-many relationships: `Appointment_Service`, `Service_Part`.
-- Each appointment has a unique invoice; invoices can have multiple payments.
-- All SQL scripts should be placed in the `Autocare/sql/` directory.
+## Database design (summary)
+Main entities: customer, vehicle, employee, service, part, appointment, appointment_service, service_part, invoice, payment.  
+Foreign keys link appointments to customers/vehicles, invoices to appointments, payments to invoices, etc.
 
 ---
 
@@ -149,101 +110,3 @@ GAMS/
 
 ## License
 See LICENSE file for details.
-Appointment Management
-- Schedule service appointments
-- Assign mechanics
-- Update appointment status
-
-Service Management
-- Maintain list of services (oil change, brake repair, etc.)
-- Record services performed per appointment
-
-Parts Inventory
-- Track parts and quantities
-- Update inventory after service
-
-Billing & Payment
-- Generate invoices
-- Record payments
-- View unpaid invoices
-
-Reporting (Queries)
-- Monthly revenue report
-- Most popular services
-- Mechanic workload
-- Low-stock parts
-
-------------------------------------------------------------
-3. Database Design (Tables)
-------------------------------------------------------------
-Main Entities (Tables)
-1. Customer
-2. Vehicle
-3. Employee (Mechanic / Staff)
-4. Service
-5. Appointment
-6. Appointment_Service  ( Just require part of DB )
-7. Part
-8. Service_Part
-9. Invoice
-10. Payment
-
-------------------------------------------------------------
-4. Setup Instructions (MySQL)
-------------------------------------------------------------
-Database name: autocare_db (already created by user)
-
-Step A: Create tables
-1) Open MySQL Shell or Workbench SQL editor
-2) Run: create_tables.sql
-
-Step B: Insert sample data
-1) Run: insert_sample_data.sql
-
-Verification queries:
-- SHOW TABLES;
-- SELECT * FROM customer;
-- SELECT * FROM appointment;
-
-------------------------------------------------------------
-5. Java Swing User Interface
-------------------------------------------------------------
-Screens:
-1. Login Screen
-2. Customer Management Screen
-3. Vehicle Management Screen
-4. Appointment Scheduling Screen
-5. Service & Parts Screen
-6. Invoice & Payment Screen
-7. Reports Screen
-
-Technology:
-- Java Swing GUI
-- JDBC connection to MySQL
-- MySQL Connector/J
-- IntelliJ IDEA
-
-------------------------------------------------------------
-6. Suggested Project Folder Structure
-------------------------------------------------------------
-GAMS/
-  sql/
-    create_tables.sql
-    insert_sample_data.sql
-  src/
-    (Java source code)
-  README.md
-
-------------------------------------------------------------
-7. Notes
-------------------------------------------------------------
-- Foreign keys enforce data integrity across tables.
-- Appointment_Service and Service_Part represent many-to-many relationships.
-- Invoice is 1-to-1 with appointment (unique appointment_id).
-- Payment is 1-to-many with invoice.
-
-## JAR 
-
-```bash
-java -jar autocare-germantown.jar
-```

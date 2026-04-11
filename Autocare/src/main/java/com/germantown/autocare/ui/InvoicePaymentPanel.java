@@ -3,9 +3,12 @@ package com.germantown.autocare.ui;
 import com.germantown.autocare.model.Invoice;
 import com.germantown.autocare.service.BillingService;
 import com.germantown.autocare.util.UIHelper;
+import com.germantown.autocare.util.UiTheme;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
@@ -33,26 +36,35 @@ public class InvoicePaymentPanel extends JPanel {
 
     public InvoicePaymentPanel() {
         setLayout(new BorderLayout(15, 15));
+        setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        UiTheme.paintPanelBackground(this);
 
         // --- INVOICE SUMMARY SECTION ---
         JPanel pnlInvoice = new JPanel(new GridLayout(3, 2, 10, 10));
-        pnlInvoice.setBorder(BorderFactory.createTitledBorder("Invoice Summary"));
+        pnlInvoice.setBorder(UiTheme.sectionBorder("Invoice summary"));
+        UiTheme.paintPanelBackground(pnlInvoice);
 
         pnlInvoice.add(new JLabel("Invoice ID:"));
         lblInvID = new JLabel("---"); // Populated after loading an invoice
+        lblInvID.setForeground(new Color(30, 41, 59));
+        lblInvID.setFont(lblInvID.getFont().deriveFont(Font.BOLD, 14f));
         pnlInvoice.add(lblInvID);
 
         pnlInvoice.add(new JLabel("Total Amount:"));
         lblTotal = new JLabel("$0.00");
+        lblTotal.setForeground(new Color(30, 41, 59));
+        lblTotal.setFont(lblTotal.getFont().deriveFont(Font.BOLD, 14f));
         pnlInvoice.add(lblTotal);
 
         pnlInvoice.add(new JLabel("Current Status:"));
         lblStatus = new JLabel("UNLOADED");
+        lblStatus.setForeground(new Color(100, 116, 139));
         pnlInvoice.add(lblStatus);
 
         // --- PAYMENT ENTRY SECTION ---
         JPanel pnlPayment = new JPanel(new GridLayout(4, 2, 10, 10));
-        pnlPayment.setBorder(BorderFactory.createTitledBorder("Record New Payment"));
+        pnlPayment.setBorder(UiTheme.sectionBorder("Record payment"));
+        UiTheme.paintPanelBackground(pnlPayment);
 
         pnlPayment.add(new JLabel("Payment Date (YYYY-MM-DD):"));
         txtPayDate = new JTextField();
@@ -75,6 +87,10 @@ public class InvoicePaymentPanel extends JPanel {
         btnCreate.addActionListener(e -> onCreateInvoice());
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        UiTheme.paintPanelBackground(bottom);
+        UiTheme.styleToolbarButton(btnCreate);
+        UiTheme.styleToolbarButton(btnLoad);
+        UiTheme.stylePrimaryButton(btnSave);
         bottom.add(btnCreate);
         bottom.add(btnLoad);
         bottom.add(btnSave);

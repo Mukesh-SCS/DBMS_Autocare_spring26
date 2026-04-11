@@ -1,5 +1,7 @@
 package com.germantown.autocare.ui;
 
+import com.germantown.autocare.util.UiTheme;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -11,19 +13,19 @@ public class DashboardFrame extends JFrame {
     public DashboardFrame() {
         setTitle("Germantown AutoCare - Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 600);
+        setSize(960, 640);
         setLocationRelativeTo(null);
 
         JTabbedPane tabs = new JTabbedPane();
+        tabs.setBorder(BorderFactory.createEmptyBorder(8, 12, 12, 12));
         tabs.addTab("Customers", new CustomerPanel());
         VehiclePanel vehiclePanel = new VehiclePanel();
         tabs.addTab("Vehicles", vehiclePanel);
 
-        // New tabs for appointments and services/parts
         tabs.addTab("Appointments", new AppointmentPanel());
-       // tabs.addTab("Services & Parts", new ServicePartPanel());  // i will uncomment later on 
+        tabs.addTab("Services & Parts", new ServicePartPanel());
 
-        // New tab for Invoice & Payment UI
+        // Invoice & payment
         tabs.addTab("Billing", new InvoicePaymentPanel());
 
         tabs.addChangeListener(e -> {
@@ -34,5 +36,7 @@ public class DashboardFrame extends JFrame {
 
         setLayout(new BorderLayout());
         add(tabs, BorderLayout.CENTER);
+        getContentPane().setBackground(UiTheme.PANEL_BG);
+        ((JComponent) getContentPane()).setOpaque(true);
     }
 }

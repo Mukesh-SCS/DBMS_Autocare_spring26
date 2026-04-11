@@ -46,7 +46,6 @@ CREATE TABLE vehicle (
 );
 
 -- SERVICE
--- SERVICE
 CREATE TABLE service (
     service_id                 INT AUTO_INCREMENT PRIMARY KEY,
     service_name               VARCHAR(150) NOT NULL,
@@ -81,6 +80,18 @@ CREATE TABLE Part (
                       Reorder_Level INT DEFAULT 0
 ) ENGINE=InnoDB;
 
+-- SERVICE_PART (M:N) — which parts a service uses
+CREATE TABLE service_part (
+    service_id INT NOT NULL,
+    Part_ID    INT NOT NULL,
+    quantity   INT NOT NULL DEFAULT 1,
+    PRIMARY KEY (service_id, Part_ID),
+    CONSTRAINT fk_service_part_service FOREIGN KEY (service_id)
+        REFERENCES service(service_id) ON DELETE CASCADE,
+    CONSTRAINT fk_service_part_part FOREIGN KEY (Part_ID)
+        REFERENCES Part(Part_ID) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
 -- APPOINTMENT
 CREATE TABLE Appointment (
                              Appointment_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -105,7 +116,7 @@ CREATE TABLE Appointment_Service (
                                      CONSTRAINT fk_app_svc_appointment FOREIGN KEY (Appointment_ID)
                                          REFERENCES Appointment(Appointment_ID) ON DELETE CASCADE,
                                      CONSTRAINT fk_app_svc_service FOREIGN KEY (Service_ID)
-                                         REFERENCES Service(Service_ID) ON DELETE RESTRICT
+                                         REFERENCES service(service_id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
 
