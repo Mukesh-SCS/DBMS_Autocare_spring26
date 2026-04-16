@@ -61,7 +61,7 @@ db.username=root
 db.password=root
 ```
 
-The login screen will pre-fill with these values.
+When you run the JAR, the application will automatically load this file and use those settings for the database connection. This means you won't need to enter the host, port, and database name in the login dialog—just enter your MySQL username and password.
 
 ---
 

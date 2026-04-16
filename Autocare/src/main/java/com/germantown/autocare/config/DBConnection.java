@@ -1,5 +1,7 @@
 package com.germantown.autocare.config;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -20,21 +22,56 @@ public class DBConnection {
 
     /**
      * Load database configuration from config.properties file
+     * First tries to load from disk (working directory / same directory as JAR),
+     * then falls back to classpath resource, then uses hardcoded defaults.
      */
     private static void loadPropertiesFile() {
+        Properties props = new Properties();
+        
+        // First, try to load from disk (working directory / same directory as JAR)
+        File externalFile = new File("config.properties");
+        if (externalFile.exists()) {
+            try (InputStream input = new FileInputStream(externalFile)) {
+                props.load(input);
+                applyProperties(props);
+                System.out.println("Database config loaded from disk: " + externalFile.getAbsolutePath());
+                return;
+            } catch (IOException e) {
+                System.out.println("Failed to load config.properties from disk: " + e.getMessage());
+            }
+        }
+        
+        // Fall back to classpath resource
         try (InputStream input = DBConnection.class.getClassLoader().getResourceAsStream("config.properties")) {
             if (input != null) {
-                Properties props = new Properties();
                 props.load(input);
-                host = props.getProperty("db.host", "localhost");
-                port = Integer.parseInt(props.getProperty("db.port", "3306"));
-                database = props.getProperty("db.database", "autocare_db");
-                username = props.getProperty("db.username", "root");
-                password = props.getProperty("db.password", "root");
-                System.out.println("Database config loaded from properties file");
+                applyProperties(props);
+                System.out.println("Database config loaded from classpath resource");
+                return;
             }
         } catch (IOException e) {
-            System.out.println("config.properties not found, using default values: " + e.getMessage());
+            System.out.println("config.properties not found in classpath: " + e.getMessage());
+        }
+        
+        // Use hardcoded defaults
+        System.out.println("Using default database configuration");
+    }
+    
+    /**
+     * Apply properties from Properties object, with safe parsing for port
+     */
+    private static void applyProperties(Properties props) {
+        host = props.getProperty("db.host", "localhost");
+        database = props.getProperty("db.database", "autocare_db");
+        username = props.getProperty("db.username", "root");
+        password = props.getProperty("db.password", "root");
+        
+        // Parse port safely, default to 3306 if invalid
+        try {
+            port = Integer.parseInt(props.getProperty("db.port", "3306"));
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid port number in config, using default 3306: " + e.getMessage());
+            port = 3306;
         }
     }
 

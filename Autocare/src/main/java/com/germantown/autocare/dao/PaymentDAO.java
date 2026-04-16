@@ -48,7 +48,7 @@ public class PaymentDAO {
     /**
      * Get all payments with customer and invoice information
      */
-    public List<Map<String, Object>> getPaymentHistory() {
+    public List<Map<String, Object>> getPaymentHistory() throws SQLException {
         List<Map<String, Object>> history = new ArrayList<>();
         String sql = "SELECT p.Payment_ID, p.Invoice_ID, p.Payment_Date, p.Payment_Amount, p.Payment_Method, " +
                      "i.Appointment_ID, c.first_name, c.last_name, i.Total_Amount, i.Payment_Status " +
@@ -73,8 +73,6 @@ public class PaymentDAO {
                 payment.put("paymentStatus", rs.getString("Payment_Status"));
                 history.add(payment);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return history;
     }

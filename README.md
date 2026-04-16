@@ -86,7 +86,7 @@ The application **automatically connects to**:
 Just enter your MySQL username and password in the login dialog!
 
 #### Optional: Custom Database Configuration
-Create `config.properties` in the same directory as the JAR:
+Create `config.properties` in the same directory as the JAR file:
 
 ```properties
 db.host=localhost
@@ -95,6 +95,8 @@ db.database=autocare_db
 db.username=root
 db.password=root
 ```
+
+The application will automatically load this file when you run the JAR, allowing you to pre-configure database connection settings instead of entering them in the login dialog each time.
 
 ---
 

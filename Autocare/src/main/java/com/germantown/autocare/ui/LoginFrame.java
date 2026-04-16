@@ -142,28 +142,27 @@ public class LoginFrame extends JFrame {
 
         try {
             // Use default host, port, database with custom username/password
-            Connection conn = DBConnection.getConnection(
+            try (Connection conn = DBConnection.getConnection(
                     DBConnection.getHost(),
                     DBConnection.getPort(),
                     DBConnection.getDatabase(),
                     username,
                     password
-            );
-
-            if (conn != null && !conn.isClosed()) {
-                // Update static settings for future connections
-                DBConnection.setConnectionSettings(
-                        DBConnection.getHost(),
-                        DBConnection.getPort(),
-                        DBConnection.getDatabase(),
-                        username,
-                        password
-                );
-                conn.close();
-                dispose();
-                new com.germantown.autocare.ui.DashboardFrame().setVisible(true);
-            } else {
-                JOptionPane.showMessageDialog(this, "Database connection failed.", "Error", JOptionPane.ERROR_MESSAGE);
+            )) {
+                if (conn != null && !conn.isClosed()) {
+                    // Update static settings for future connections
+                    DBConnection.setConnectionSettings(
+                            DBConnection.getHost(),
+                            DBConnection.getPort(),
+                            DBConnection.getDatabase(),
+                            username,
+                            password
+                    );
+                    dispose();
+                    new com.germantown.autocare.ui.DashboardFrame().setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Database connection failed.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Authentication failed:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

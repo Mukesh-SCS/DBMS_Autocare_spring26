@@ -274,7 +274,7 @@ public class AppointmentPanel extends JPanel {
                     "Invoice ID(s): %s\n\n" +
                     "Please handle the invoice(s) first, then try again.\n\n" +
                     "Options:\n" +
-                    "1. Go to Billing tab to manage/delete the invoice\n" +
+                    "1. Go to the Billing tab to review the invoice and record payment or mark it as paid\n" +
                     "2. Contact the office if you need assistance",
                     linkedInvoices.size(),
                     invoiceList
