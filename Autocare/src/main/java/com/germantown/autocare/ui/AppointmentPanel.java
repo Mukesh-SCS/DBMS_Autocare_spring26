@@ -1,5 +1,25 @@
 package com.germantown.autocare.ui;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableModel;
+
 import com.germantown.autocare.dao.CustomerDAO;
 import com.germantown.autocare.dao.VehicleDAO;
 import com.germantown.autocare.model.Appointment;
@@ -8,14 +28,6 @@ import com.germantown.autocare.model.Vehicle;
 import com.germantown.autocare.service.AppointmentService;
 import com.germantown.autocare.util.UIHelper;
 import com.germantown.autocare.util.UiTheme;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.List;
 
 /**
  * Appointment scheduling and management screen.
@@ -244,13 +256,47 @@ public class AppointmentPanel extends JPanel {
             UIHelper.showError(this, "Select an appointment to cancel.");
             return;
         }
-        if (!UIHelper.confirm(this, "Cancel this appointment?")) return;
         int id = (Integer) tableModel.getValueAt(row, 0);
+        
+        // Check if appointment has linked invoices
         try {
+            List<Integer> linkedInvoices = appointmentService.getLinkedInvoices(id);
+            
+            if (!linkedInvoices.isEmpty()) {
+                // Appointment has invoices - prevent deletion
+                String invoiceList = String.join(", ", linkedInvoices.stream()
+                    .map(String::valueOf)
+                    .toArray(String[]::new));
+                
+                String message = String.format(
+                    "Cannot cancel this appointment!\n\n" +
+                    "There are %d linked invoice(s) associated with this appointment:\n" +
+                    "Invoice ID(s): %s\n\n" +
+                    "Please handle the invoice(s) first, then try again.\n\n" +
+                    "Options:\n" +
+                    "1. Go to the Billing tab to review the invoice and record payment or mark it as paid\n" +
+                    "2. Contact the office if you need assistance",
+                    linkedInvoices.size(),
+                    invoiceList
+                );
+                
+                JOptionPane.showMessageDialog(
+                    this,
+                    message,
+                    "Cannot Cancel Appointment",
+                    JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+            
+            // No invoices - safe to cancel
+            if (!UIHelper.confirm(this, "Cancel this appointment?")) return;
+            
             appointmentService.cancelAppointment(id);
             UIHelper.showMessage(this, "Appointment cancelled.");
             clearForm();
             loadTable();
+            
         } catch (Exception ex) {
             UIHelper.showError(this, "Cancel failed: " + ex.getMessage());
         }

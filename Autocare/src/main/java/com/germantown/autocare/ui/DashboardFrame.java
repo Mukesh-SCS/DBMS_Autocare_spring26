@@ -1,9 +1,13 @@
 package com.germantown.autocare.ui;
 
-import com.germantown.autocare.util.UiTheme;
+import java.awt.BorderLayout;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
+
+import com.germantown.autocare.util.UiTheme;
 
 /**
  * Main dashboard with tabs for Customers, Vehicles, Appointments, Services/Parts, and Billing.
@@ -27,6 +31,9 @@ public class DashboardFrame extends JFrame {
 
         // Invoice & payment
         tabs.addTab("Billing", new InvoicePaymentPanel());
+
+        // Payment and Service History (NEW)
+        tabs.addTab("History", new HistoryPanel());
 
         tabs.addChangeListener(e -> {
             if (tabs.getSelectedComponent() == vehiclePanel) {

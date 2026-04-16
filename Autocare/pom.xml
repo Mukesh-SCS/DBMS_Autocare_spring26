@@ -27,6 +27,8 @@
 
     <build>
         <finalName>autocare-germantown</finalName>
+        <!-- Note: config.properties is loaded from the working directory (same folder as JAR) at runtime,
+             not packaged with the JAR. Users should create config.properties next to the JAR file. -->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

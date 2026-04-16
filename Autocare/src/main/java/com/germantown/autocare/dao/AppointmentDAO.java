@@ -1,12 +1,17 @@
 package com.germantown.autocare.dao;
 
-import com.germantown.autocare.config.DBConnection;
-import com.germantown.autocare.model.Appointment;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.germantown.autocare.config.DBConnection;
+import com.germantown.autocare.model.Appointment;
 
 /**
  * Data access for Appointment table.
@@ -89,6 +94,25 @@ public class AppointmentDAO {
         a.setStatus(rs.getString("Status"));
         a.setNotes(rs.getString("Notes"));
         return a;
+    }
+
+    /**
+     * Check if an appointment has linked invoices
+     * @return List of invoice IDs linked to this appointment, or empty list if none
+     */
+    public List<Integer> getLinkedInvoiceIds(int appointmentId) throws SQLException {
+        List<Integer> invoiceIds = new ArrayList<>();
+        String sql = "SELECT Invoice_ID FROM Invoice WHERE Appointment_ID = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, appointmentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    invoiceIds.add(rs.getInt("Invoice_ID"));
+                }
+            }
+        }
+        return invoiceIds;
     }
 }
 

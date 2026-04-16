@@ -1,10 +1,10 @@
 package com.germantown.autocare.service;
 
-import com.germantown.autocare.dao.AppointmentDAO;
-import com.germantown.autocare.model.Appointment;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.germantown.autocare.dao.AppointmentDAO;
+import com.germantown.autocare.model.Appointment;
 
 /**
  * Service layer for appointment-related operations.
@@ -25,6 +25,14 @@ public class AppointmentService {
 
     public boolean cancelAppointment(int appointmentId) throws Exception {
         return appointmentDAO.delete(appointmentId);
+    }
+
+    /**
+     * Check if appointment has linked invoices
+     * @return List of invoice IDs, empty if none
+     */
+    public List<Integer> getLinkedInvoices(int appointmentId) throws Exception {
+        return appointmentDAO.getLinkedInvoiceIds(appointmentId);
     }
 
     public Appointment findById(int appointmentId) throws Exception {

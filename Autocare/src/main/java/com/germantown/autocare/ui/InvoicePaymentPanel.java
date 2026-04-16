@@ -1,10 +1,5 @@
 package com.germantown.autocare.ui;
 
-import com.germantown.autocare.model.Invoice;
-import com.germantown.autocare.service.BillingService;
-import com.germantown.autocare.util.UIHelper;
-import com.germantown.autocare.util.UiTheme;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -18,6 +13,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import com.germantown.autocare.model.Invoice;
+import com.germantown.autocare.service.BillingService;
+import com.germantown.autocare.util.UIHelper;
+import com.germantown.autocare.util.UiTheme;
 
 /**
  * Panel for viewing an invoice summary and entering a payment.
@@ -147,8 +147,31 @@ public class InvoicePaymentPanel extends JPanel {
         try {
             Invoice updated = billingService.recordPayment(currentInvoiceId, date, amount, method);
             lblStatus.setText(updated.getPaymentStatus());
-            UIHelper.showMessage(this, "Payment recorded successfully.");
+            
+            // Get customer name for confirmation
+            String customerName = billingService.getCustomerNameForInvoice(currentInvoiceId);
+            
+            // Show payment confirmation with customer info
+            String message = String.format(
+                "✓ Payment Confirmed!\n\n" +
+                "Customer: %s\n" +
+                "Invoice ID: %d\n" +
+                "Amount: $%.2f\n" +
+                "Payment Method: %s\n" +
+                "Date: %s\n" +
+                "Status: %s",
+                customerName,
+                currentInvoiceId,
+                amount,
+                method,
+                date,
+                updated.getPaymentStatus()
+            );
+            
+            JOptionPane.showMessageDialog(this, message, "Payment Confirmation", JOptionPane.INFORMATION_MESSAGE);
+            
             txtAmount.setText("");
+            txtPayDate.setText("");
         } catch (IllegalArgumentException ex) {
             UIHelper.showError(this, ex.getMessage());
         } catch (Exception ex) {
