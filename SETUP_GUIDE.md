@@ -64,16 +64,16 @@ db.username=root             # MySQL username
 db.password=root             # MySQL password
 ```
 
-The application currently reads `config.properties` from the classpath. Simply placing the file in the same directory as the JAR will not load it automatically unless that location is added to the classpath. When loaded from the classpath, the username and password in the config file will be pre-filled in the login form.
+Place `config.properties` in the same directory as the JAR and it will be loaded automatically when the application starts. Values in the file are applied to the database connection, and the username is pre-filled in the login screen.
 
 ---
 
 ## Configuration File
 
 ### Default config.properties Location
-`config.properties` must be available on the application's classpath. Placing it in the directory where you run the JAR is not sufficient by itself unless that directory is included on the classpath.
+Place `config.properties` in the same directory as the JAR (the working directory when you run `java -jar`). The application checks for this file first at startup and loads it automatically.
 
-If you package or launch the application yourself, make sure `config.properties` is added to the runtime classpath.
+As a fallback for development, the file can also be placed on the application's classpath (e.g., in `src/main/resources`).
 ### Configuration Options
 | Property | Description | Default |
 |----------|-------------|---------|
