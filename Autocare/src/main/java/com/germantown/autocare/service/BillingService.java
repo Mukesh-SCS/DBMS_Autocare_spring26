@@ -54,5 +54,12 @@ public class BillingService {
         invoice.setPaymentStatus(newStatus);
         return invoice;
     }
+
+    /**
+     * Get customer name for an invoice
+     */
+    public String getCustomerNameForInvoice(int invoiceId) {
+        return paymentDAO.getCustomerNameForInvoice(invoiceId);
+    }
 }
 

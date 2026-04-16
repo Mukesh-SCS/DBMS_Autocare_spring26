@@ -76,21 +76,46 @@ java -jar target/autocare-germantown.jar
 
 Or run **`com.germantown.autocare.app.MainApp`** from your IDE.
 
-### 3. Database connection
-- Edit `Autocare/src/main/java/com/germantown/autocare/config/DBConnection.java` if your MySQL user, password, host, or database name differs.
-- Default in code is typically `root` / `admin` / `jdbc:mysql://localhost:3306/autocare_db` (adjust for your machine).
+### 3. Database Connection (Automatic!)
+
+The application **automatically connects to**:
+- **Host**: `localhost`
+- **Port**: `3306`
+- **Database**: `autocare_db`
+
+Just enter your MySQL username and password in the login dialog!
+
+#### Optional: Custom Database Configuration
+Create `config.properties` in the same directory as the JAR:
+
+```properties
+db.host=localhost
+db.port=3306
+db.database=autocare_db
+db.username=root
+db.password=root
+```
 
 ---
 
 ## GitHub Actions / release JAR
-- Workflow: `.github/workflows/build-and-release.yml` builds with JDK 17 and uploads **`autocare-germantown.jar`** (fat JAR including the MySQL driver).
-- Releases are created when you push a version tag (e.g. `v1.0.0`), not on every push to `main`.
+- Workflow: `.github/workflows/build-and-release.yml` automatically builds with JDK 17 when you create a release tag
+- Uploads **`autocare-germantown.jar`** (fat JAR including the MySQL driver)
+- Create a release by pushing a version tag:
+  ```bash
+  git tag -a v1.2.0 -m "Release v1.2.0"
+  git push origin v1.2.0
+  ```
 
 ### Run the downloaded JAR
 
 ```bash
 java -jar autocare-germantown.jar
 ```
+
+Then:
+1. **Enter your MySQL credentials** (username and password)
+2. Click **Login** to connect and access the dashboard
 
 Ensure MySQL is running and `autocare_db` exists with tables applied.
 
