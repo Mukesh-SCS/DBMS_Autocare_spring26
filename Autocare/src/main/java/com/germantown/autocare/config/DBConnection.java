@@ -83,25 +83,6 @@ public class DBConnection {
         return DriverManager.getConnection(url, username, password);
     }
 
-    /**
-     * Get connection with custom credentials (used during login)
-     */
-    public static Connection getConnection(String customHost, int customPort, String customDb, String customUser, String customPassword) throws SQLException {
-        String url = String.format("jdbc:mysql://%s:%d/%s", customHost, customPort, customDb);
-        return DriverManager.getConnection(url, customUser, customPassword);
-    }
-
-    /**
-     * Update connection settings (usually called after successful login)
-     */
-    public static void setConnectionSettings(String newHost, int newPort, String newDatabase, String newUsername, String newPassword) {
-        host = newHost;
-        port = newPort;
-        database = newDatabase;
-        username = newUsername;
-        password = newPassword;
-    }
-
     // Getters for current settings
     public static String getHost() { return host; }
     public static int getPort() { return port; }

@@ -37,34 +37,20 @@ mysql -u root -p autocare_db < sql/insert_sample_data.sql
 java -jar autocare-germantown.jar
 ```
 
-The login window will appear with username and password fields.
+The main dashboard opens when the database connection succeeds. Defaults: **localhost:3306**, database **autocare_db**, user **root**, password **root**.
 
----
-
-## Login System
-
-### Simple Login
-The application automatically connects to:
-- **Host**: `localhost`
-- **Port**: `3306`
-- **Database**: `autocare_db`
-
-Just enter your MySQL credentials:
-- **Username**: Your MySQL username (default: `root`)
-- **Password**: Your MySQL password (default: `root`)
-
-### Custom Database Configuration (Optional)
-If you need to connect to a different host, port, or database, create a `config.properties` file:
+### Custom database settings
+If you need a different host, port, database, or MySQL user, create `config.properties` next to the JAR:
 
 ```properties
-db.host=192.168.1.100        # Change to your MySQL server
-db.port=3306                 # MySQL port
-db.database=autocare_db      # Database name
-db.username=root             # MySQL username
-db.password=root             # MySQL password
+db.host=192.168.1.100
+db.port=3306
+db.database=autocare_db
+db.username=root
+db.password=root
 ```
 
-Place `config.properties` in the same directory as the JAR and it will be loaded automatically when the application starts. Values in the file are applied to the database connection, and the username is pre-filled in the login screen.
+The file is read at startup before the UI appears.
 
 ---
 
@@ -99,7 +85,7 @@ db.password=secure_password
 ```
 
 2. **Place in same directory as JAR**
-3. **The login form will pre-fill with these values**
+3. **Run** `java -jar autocare-germantown.jar` **from that directory** (or set the working directory so the file is found)
 
 ---
 
@@ -200,7 +186,7 @@ java -jar target/autocare-germantown.jar
 ```
 Germantown AutoCare Management System
 ├── UI Layer (Swing)
-│   ├── LoginFrame (Simple username/password)
+│   ├── DashboardFrame (main window)
 │   ├── DashboardFrame
 │   └── [Business Panels]
 ├── Service Layer

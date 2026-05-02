@@ -45,7 +45,7 @@ DBMS_Autocare_spring26/
 │       ├── model/                              # Customer, Vehicle, Employee, Service, Part, Appointment, Invoice, Payment
 │       ├── dao/                                # JDBC access per table
 │       ├── service/                            # AppointmentService, BillingService
-│       ├── ui/                                 # LoginFrame, DashboardFrame, CustomerPanel, VehiclePanel, AppointmentPanel, ServicePartPanel, InvoicePaymentPanel
+│       ├── ui/                                 # DashboardFrame, CustomerPanel, VehiclePanel, AppointmentPanel, ServicePartPanel, InvoicePaymentPanel
 │       └── util/UIHelper.java
 └── (optional) insert_sample_data.sql           # Add if you maintain sample data scripts
 ```
@@ -76,27 +76,22 @@ java -jar target/autocare-germantown.jar
 
 Or run **`com.germantown.autocare.app.MainApp`** from your IDE.
 
-### 3. Database Connection (Automatic!)
+### 3. Database Connection
 
-The application **automatically connects to**:
-- **Host**: `localhost`
-- **Port**: `3306`
-- **Database**: `autocare_db`
+By default the app uses **localhost:3306**, database **autocare_db**, user **root**, password **root**.
 
-Just enter your MySQL username and password in the login dialog!
-
-#### Optional: Custom Database Configuration
-Create `config.properties` in the same directory as the JAR file:
+#### Configure credentials (recommended for downloads)
+Create `config.properties` in the **same folder as the JAR** (or your working directory when you run `java -jar`):
 
 ```properties
 db.host=localhost
 db.port=3306
 db.database=autocare_db
 db.username=root
-db.password=root
+db.password=your_mysql_password
 ```
 
-The application will automatically load this file when you run the JAR, allowing you to pre-configure database connection settings instead of entering them in the login dialog each time.
+That file is loaded automatically on startup (before any UI). Anyone who clones or downloads the release JAR only needs MySQL running, the schema applied, and matching settings in `config.properties` (or the default root/root if that matches their server).
 
 ---
 
@@ -115,11 +110,7 @@ The application will automatically load this file when you run the JAR, allowing
 java -jar autocare-germantown.jar
 ```
 
-Then:
-1. **Enter your MySQL credentials** (username and password)
-2. Click **Login** to connect and access the dashboard
-
-Ensure MySQL is running and `autocare_db` exists with tables applied.
+Ensure MySQL is running, `autocare_db` exists with tables applied, and credentials match `config.properties` (or the built-in defaults). The dashboard opens when the connection succeeds; otherwise an error dialog explains what to fix.
 
 ---
 

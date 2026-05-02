@@ -29,27 +29,15 @@ java -jar autocare-germantown.jar
 
 ---
 
-## Login
+## First run
 
-When the application starts, you'll see the login screen:
+The app opens the main window when it can connect to MySQL. By default it uses **root** / **root** on **localhost:3306** and database **autocare_db**.
 
-| Field | Enter | Example |
-|-------|-------|---------|
-| **Username** | Your MySQL username | `root` |
-| **Password** | Your MySQL password | `root` |
-
-Then click **Login**
-
-**Note:** The application automatically connects to:
-- **Host**: `localhost`
-- **Port**: `3306` 
-- **Database**: `autocare_db`
-
-If you need different settings, edit `config.properties` (see below).
+If your MySQL user or password is different, add `config.properties` next to the JAR (see below) before running.
 
 ---
 
-## Configuration File (Optional)
+## Configuration File (use when defaults do not match your MySQL)
 
 Create `config.properties` in the same folder as the JAR:
 
@@ -58,10 +46,10 @@ db.host=localhost
 db.port=3306
 db.database=autocare_db
 db.username=root
-db.password=root
+db.password=your_password
 ```
 
-When you run the JAR, the application will automatically load this file and use those settings for the database connection. This means you won't need to enter the host, port, and database name in the login dialog—just enter your MySQL username and password.
+The JAR loads this file automatically on startup.
 
 ---
 
@@ -71,8 +59,8 @@ When you run the JAR, the application will automatically load this file and use 
 |-------|----------|
 | "Connection failed" | Check MySQL is running, verify credentials |
 | "Unknown database" | Run `create_tables.sql` first |
-| "Access denied" | Fix username/password in login or config.properties |
-| "Port 3306 in use" | Change port in login dialog or config.properties |
+| "Access denied" | Set `db.username` / `db.password` in config.properties |
+| "Port 3306 in use" | Change `db.port` in config.properties (and MySQL) |
 
 ---
 
