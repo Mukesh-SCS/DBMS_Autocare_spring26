@@ -125,4 +125,4 @@ INSERT INTO Payment (Payment_ID, Invoice_ID, Payment_Date, Payment_Amount, Payme
 (2, 2, '2026-01-10', 219.99, 'Debit Card'),
 (3, 3, '2026-01-14', 69.98, 'Cash'),
 (4, 4, '2026-01-15', 100.00, 'Credit Card'),
-(5, 7, '2026-01-22', 49.99, 'Credit Card');
+(5, 5, '2026-01-22', 49.99, 'Credit Card');
