@@ -13,11 +13,11 @@ import java.util.List;
  */
 public class VehicleDAO {
 
-    private static final String INSERT = "INSERT INTO vehicle (customer_id, vin, make, model, year, license_plate) VALUES (?, ?, ?, ?, ?, ?)";
-    private static final String UPDATE = "UPDATE vehicle SET customer_id=?, vin=?, make=?, model=?, year=?, license_plate=? WHERE vehicle_id=?";
+    private static final String INSERT = "INSERT INTO vehicle (customer_id, vin, make, model, \"year\", license_plate) VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE = "UPDATE vehicle SET customer_id=?, vin=?, make=?, model=?, \"year\"=?, license_plate=? WHERE vehicle_id=?";
     private static final String DELETE = "DELETE FROM vehicle WHERE vehicle_id=?";
     private static final String FIND_BY_ID = "SELECT * FROM vehicle WHERE vehicle_id=?";
-    private static final String FIND_ALL = "SELECT * FROM vehicle ORDER BY make, model, year";
+    private static final String FIND_ALL = "SELECT * FROM vehicle ORDER BY make, model, \"year\"";
     private static final String FIND_BY_CUSTOMER = "SELECT * FROM vehicle WHERE customer_id=? ORDER BY make, model";
 
     public int insert(Vehicle v) throws SQLException {
