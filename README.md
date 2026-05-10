@@ -47,7 +47,7 @@ DBMS_Autocare_spring26/
 │       ├── service/                            # AppointmentService, BillingService
 │       ├── ui/                                 # DashboardFrame, CustomerPanel, VehiclePanel, AppointmentPanel, ServicePartPanel, InvoicePaymentPanel
 │       └── util/UIHelper.java
-└── (optional) insert_sample_data.sql           # Add if you maintain sample data scripts
+└── insert_sample_data.sql           # Add if you maintain sample data scripts
 ```
 
 ---
@@ -122,7 +122,7 @@ Foreign keys link appointments to customers/vehicles, invoices to appointments, 
 
 ## Authors & Credits
 - Requirements by: Anthony Tran (Mechanic)
-- Developed by: [Your Name Here]
+- Developed by: Leon, Adam , Ravinder and Mukesh
 
 ---
 

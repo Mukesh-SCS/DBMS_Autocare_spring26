@@ -69,99 +69,27 @@ public class CustomerDAO {
 
     public boolean delete(int customerId) throws SQLException {
         try (Connection conn = DBConnection.getConnection()) {
-            // Get all vehicles for this customer
-            String getVehicles = "SELECT Vehicle_ID FROM vehicle WHERE customer_id=?";
-            List<Integer> vehicleIds = new ArrayList<>();
-            try (PreparedStatement ps = conn.prepareStatement(getVehicles)) {
-                ps.setInt(1, customerId);
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        vehicleIds.add(rs.getInt("Vehicle_ID"));
-                    }
-                }
+            // Payments must go first (FK → Invoice)
+            try (PreparedStatement psPayments = conn.prepareStatement(
+                    "DELETE p FROM Payment p " +
+                    "JOIN Invoice i ON p.Invoice_ID = i.Invoice_ID " +
+                    "JOIN Appointment a ON i.Appointment_ID = a.Appointment_ID " +
+                    "WHERE a.Customer_ID = ?")) {
+                psPayments.setInt(1, customerId);
+                psPayments.executeUpdate();
             }
-            
-            // For each vehicle, delete all dependent appointments and their data
-            for (Integer vehicleId : vehicleIds) {
-                // Get all appointments for this vehicle
-                String getAppointments = "SELECT Appointment_ID FROM Appointment WHERE Vehicle_ID=?";
-                List<Integer> appointmentIds = new ArrayList<>();
-                try (PreparedStatement ps = conn.prepareStatement(getAppointments)) {
-                    ps.setInt(1, vehicleId);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        while (rs.next()) {
-                            appointmentIds.add(rs.getInt("Appointment_ID"));
-                        }
-                    }
-                }
-                
-                // Delete all dependent records for each appointment
-                for (Integer appointmentId : appointmentIds) {
-                    // Delete payments for this appointment's invoices
-                    String deletePayments = "DELETE FROM Payment WHERE Invoice_ID IN (SELECT Invoice_ID FROM Invoice WHERE Appointment_ID=?)";
-                    try (PreparedStatement ps = conn.prepareStatement(deletePayments)) {
-                        ps.setInt(1, appointmentId);
-                        ps.executeUpdate();
-                    }
-                    
-                    // Delete invoices for this appointment
-                    String deleteInvoices = "DELETE FROM Invoice WHERE Appointment_ID=?";
-                    try (PreparedStatement ps = conn.prepareStatement(deleteInvoices)) {
-                        ps.setInt(1, appointmentId);
-                        ps.executeUpdate();
-                    }
-                    
-                    // Delete appointment services for this appointment
-                    String deleteAppointmentServices = "DELETE FROM Appointment_Service WHERE Appointment_ID=?";
-                    try (PreparedStatement ps = conn.prepareStatement(deleteAppointmentServices)) {
-                        ps.setInt(1, appointmentId);
-                        ps.executeUpdate();
-                    }
-                }
-                
-                // Delete all appointments for this vehicle
-                String deleteAppointments = "DELETE FROM Appointment WHERE Vehicle_ID=?";
-                try (PreparedStatement ps = conn.prepareStatement(deleteAppointments)) {
-                    ps.setInt(1, vehicleId);
-                    ps.executeUpdate();
-                }
-                
-                // Reset vehicle auto-increment
-                try (PreparedStatement ps = conn.prepareStatement("ALTER TABLE vehicle ALTER COLUMN Vehicle_ID RESTART WITH 1")) {
-                    ps.executeUpdate();
-                }
+            // Invoices next (FK → Appointment, no cascade defined)
+            try (PreparedStatement psInvoices = conn.prepareStatement(
+                    "DELETE i FROM Invoice i " +
+                    "JOIN Appointment a ON i.Appointment_ID = a.Appointment_ID " +
+                    "WHERE a.Customer_ID = ?")) {
+                psInvoices.setInt(1, customerId);
+                psInvoices.executeUpdate();
             }
-            
-            // Delete all vehicles for this customer
-            String deleteVehicles = "DELETE FROM vehicle WHERE customer_id=?";
-            try (PreparedStatement ps = conn.prepareStatement(deleteVehicles)) {
-                ps.setInt(1, customerId);
-                ps.executeUpdate();
-            }
-            
-            // Reset vehicle auto-increment
-            try (PreparedStatement ps = conn.prepareStatement("ALTER TABLE vehicle ALTER COLUMN Vehicle_ID RESTART WITH 1")) {
-                ps.executeUpdate();
-            }
-            
-            // Reset appointment auto-increment
-            try (PreparedStatement ps = conn.prepareStatement("ALTER TABLE Appointment ALTER COLUMN Appointment_ID RESTART WITH 1")) {
-                ps.executeUpdate();
-            }
-            
-            // Finally delete the customer
-            try (PreparedStatement ps = conn.prepareStatement(DELETE)) {
-                ps.setInt(1, customerId);
-                boolean result = ps.executeUpdate() > 0;
-                
-                // Reset customer auto-increment
-                if (result) {
-                    try (PreparedStatement resetPs = conn.prepareStatement("ALTER TABLE customer ALTER COLUMN customer_id RESTART WITH 1")) {
-                        resetPs.executeUpdate();
-                    }
-                }
-                
-                return result;
+            // Customer cascade handles vehicles and appointments
+            try (PreparedStatement psCustomer = conn.prepareStatement(DELETE)) {
+                psCustomer.setInt(1, customerId);
+                return psCustomer.executeUpdate() > 0;
             }
         }
     }
