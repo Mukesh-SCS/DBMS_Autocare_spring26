@@ -50,28 +50,29 @@ public class PaymentDAO {
      */
     public List<Map<String, Object>> getPaymentHistory() throws SQLException {
         List<Map<String, Object>> history = new ArrayList<>();
-        String sql = "SELECT p.Payment_ID, p.Invoice_ID, p.Payment_Date, p.Payment_Amount, p.Payment_Method, " +
+        // LEFT JOIN so invoices with no payments still appear (status = Unpaid)
+        String sql = "SELECT p.Payment_ID, i.Invoice_ID, p.Payment_Date, p.Payment_Amount, p.Payment_Method, " +
                      "i.Appointment_ID, c.first_name, c.last_name, i.Total_Amount, i.Payment_Status " +
-                     "FROM Payment p " +
-                     "JOIN Invoice i ON p.Invoice_ID = i.Invoice_ID " +
+                     "FROM Invoice i " +
                      "JOIN Appointment a ON i.Appointment_ID = a.Appointment_ID " +
                      "JOIN customer c ON a.Customer_ID = c.customer_id " +
-                     "ORDER BY p.Payment_Date DESC";
+                     "LEFT JOIN Payment p ON p.Invoice_ID = i.Invoice_ID " +
+                     "ORDER BY i.Invoice_ID DESC, p.Payment_Date DESC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Map<String, Object> payment = new HashMap<>();
-                payment.put("paymentId", rs.getInt("Payment_ID"));
-                payment.put("invoiceId", rs.getInt("Invoice_ID"));
-                payment.put("appointmentId", rs.getInt("Appointment_ID"));
-                payment.put("paymentDate", rs.getString("Payment_Date"));
-                payment.put("paymentAmount", rs.getDouble("Payment_Amount"));
-                payment.put("paymentMethod", rs.getString("Payment_Method"));
-                payment.put("customerName", rs.getString("first_name") + " " + rs.getString("last_name"));
-                payment.put("totalAmount", rs.getDouble("Total_Amount"));
-                payment.put("paymentStatus", rs.getString("Payment_Status"));
-                history.add(payment);
+                Map<String, Object> row = new HashMap<>();
+                row.put("paymentId", rs.getObject("Payment_ID"));
+                row.put("invoiceId", rs.getInt("Invoice_ID"));
+                row.put("appointmentId", rs.getInt("Appointment_ID"));
+                row.put("paymentDate", rs.getString("Payment_Date"));
+                row.put("paymentAmount", rs.getObject("Payment_Amount"));
+                row.put("paymentMethod", rs.getString("Payment_Method"));
+                row.put("customerName", rs.getString("first_name") + " " + rs.getString("last_name"));
+                row.put("totalAmount", rs.getDouble("Total_Amount"));
+                row.put("paymentStatus", rs.getString("Payment_Status"));
+                history.add(row);
             }
         }
         return history;

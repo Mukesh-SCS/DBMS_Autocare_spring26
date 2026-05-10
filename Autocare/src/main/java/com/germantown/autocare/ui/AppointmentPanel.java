@@ -110,6 +110,24 @@ public class AppointmentPanel extends JPanel {
             UiTheme.styleToolbarButton(b);
         }
 
+        customerCombo.addActionListener(e -> {
+            CustomerItem ci = (CustomerItem) customerCombo.getSelectedItem();
+            vehicleCombo.removeAllItems();
+            vehicleCombo.addItem(new VehicleItem(0, "-- Select Vehicle --"));
+            if (ci != null && ci.id != 0) {
+                try {
+                    for (Vehicle v : vehicleDAO.findByCustomerId(ci.id)) {
+                        vehicleCombo.addItem(new VehicleItem(
+                                v.getVehicleId(),
+                                v.getMake() + " " + v.getModel() + " (" + v.getYear() + ")"
+                        ));
+                    }
+                } catch (Exception ex) {
+                    UIHelper.showError(this, "Load vehicles failed: " + ex.getMessage());
+                }
+            }
+        });
+
         addBtn.addActionListener(e -> schedule());
         updateStatusBtn.addActionListener(e -> updateStatus());
         cancelBtn.addActionListener(e -> cancel());
@@ -147,17 +165,6 @@ public class AppointmentPanel extends JPanel {
 
         vehicleCombo.removeAllItems();
         vehicleCombo.addItem(new VehicleItem(0, "-- Select Vehicle --"));
-        try {
-            List<Vehicle> vehicles = vehicleDAO.findAll();
-            for (Vehicle v : vehicles) {
-                vehicleCombo.addItem(new VehicleItem(
-                        v.getVehicleId(),
-                        v.getMake() + " " + v.getModel() + " (" + v.getYear() + ")"
-                ));
-            }
-        } catch (Exception ex) {
-            UIHelper.showError(this, "Load vehicles failed: " + ex.getMessage());
-        }
     }
 
     private void loadTable() {
