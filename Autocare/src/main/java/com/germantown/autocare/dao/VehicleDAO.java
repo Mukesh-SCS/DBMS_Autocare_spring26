@@ -13,11 +13,11 @@ import java.util.List;
  */
 public class VehicleDAO {
 
-    private static final String INSERT = "INSERT INTO vehicle (customer_id, vin, make, model, year, license_plate) VALUES (?, ?, ?, ?, ?, ?)";
-    private static final String UPDATE = "UPDATE vehicle SET customer_id=?, vin=?, make=?, model=?, year=?, license_plate=? WHERE vehicle_id=?";
+    private static final String INSERT = "INSERT INTO vehicle (customer_id, vin, make, model, \"year\", license_plate) VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE = "UPDATE vehicle SET customer_id=?, vin=?, make=?, model=?, \"year\"=?, license_plate=? WHERE vehicle_id=?";
     private static final String DELETE = "DELETE FROM vehicle WHERE vehicle_id=?";
     private static final String FIND_BY_ID = "SELECT * FROM vehicle WHERE vehicle_id=?";
-    private static final String FIND_ALL = "SELECT * FROM vehicle ORDER BY make, model, year";
+    private static final String FIND_ALL = "SELECT * FROM vehicle ORDER BY make, model, \"year\"";
     private static final String FIND_BY_CUSTOMER = "SELECT * FROM vehicle WHERE customer_id=? ORDER BY make, model";
 
     public int insert(Vehicle v) throws SQLException {
@@ -45,10 +45,66 @@ public class VehicleDAO {
     }
 
     public boolean delete(int vehicleId) throws SQLException {
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(DELETE)) {
-            ps.setInt(1, vehicleId);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            // First get all appointments for this vehicle
+            String getAppointments = "SELECT Appointment_ID FROM Appointment WHERE Vehicle_ID=?";
+            List<Integer> appointmentIds = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement(getAppointments)) {
+                ps.setInt(1, vehicleId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        appointmentIds.add(rs.getInt("Appointment_ID"));
+                    }
+                }
+            }
+            
+            // Delete each appointment (which handles cascading deletes)
+            for (Integer appointmentId : appointmentIds) {
+                String deletePayments = "DELETE FROM Payment WHERE Invoice_ID IN (SELECT Invoice_ID FROM Invoice WHERE Appointment_ID=?)";
+                try (PreparedStatement ps = conn.prepareStatement(deletePayments)) {
+                    ps.setInt(1, appointmentId);
+                    ps.executeUpdate();
+                }
+                
+                String deleteInvoices = "DELETE FROM Invoice WHERE Appointment_ID=?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteInvoices)) {
+                    ps.setInt(1, appointmentId);
+                    ps.executeUpdate();
+                }
+                
+                String deleteAppointmentServices = "DELETE FROM Appointment_Service WHERE Appointment_ID=?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteAppointmentServices)) {
+                    ps.setInt(1, appointmentId);
+                    ps.executeUpdate();
+                }
+            }
+            
+            // Delete all appointments for this vehicle
+            String deleteAppointments = "DELETE FROM Appointment WHERE Vehicle_ID=?";
+            try (PreparedStatement ps = conn.prepareStatement(deleteAppointments)) {
+                ps.setInt(1, vehicleId);
+                ps.executeUpdate();
+            }
+            
+            // Reset appointment auto-increment
+            try (PreparedStatement ps = conn.prepareStatement("ALTER TABLE Appointment ALTER COLUMN Appointment_ID RESTART WITH 1")) {
+                ps.executeUpdate();
+            }
+            
+            // Finally delete the vehicle
+            try (PreparedStatement ps = conn.prepareStatement(DELETE)) {
+                ps.setInt(1, vehicleId);
+                boolean result = ps.executeUpdate() > 0;
+                
+                // Reset vehicle auto-increment
+                if (result) {
+                    try (PreparedStatement resetPs = conn.prepareStatement("ALTER TABLE vehicle ALTER COLUMN Vehicle_ID RESTART WITH 1")) {
+                        resetPs.executeUpdate();
+                    }
+                }
+                
+                return result;
+            }
         }
     }
 

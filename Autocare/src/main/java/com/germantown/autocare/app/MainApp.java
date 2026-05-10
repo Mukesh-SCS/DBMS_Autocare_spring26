@@ -1,14 +1,17 @@
 package com.germantown.autocare.app;
 
 import com.germantown.autocare.config.DBConnection;
+import com.germantown.autocare.config.DatabaseInitializer;
 import com.germantown.autocare.ui.DashboardFrame;
+import com.germantown.autocare.ui.LoginFrame;
 import com.germantown.autocare.util.UiTheme;
 
 import javax.swing.*;
 import java.sql.Connection;
 
 /**
- * Entry point: connects using {@link DBConnection} (defaults or {@code config.properties}), then opens the dashboard.
+ * Entry point: initializes embedded H2 database, shows login screen, then opens the dashboard.
+ * No external database installation required.
  */
 public class MainApp {
 
@@ -22,16 +25,28 @@ public class MainApp {
             }
             UiTheme.applyGlobal();
 
-            try (Connection conn = DBConnection.getConnection()) {
-                if (conn != null && !conn.isClosed()) {
-                    System.out.println("Database connection successful. Connected to: " + conn.getCatalog());
-                    new DashboardFrame().setVisible(true);
-                } else {
-                    System.err.println("Database connection failed: connection is null or closed.");
-                    showDatabaseError("Connection is null or closed.");
+            try {
+                // Initialize database (creates tables if needed)
+                System.out.println("Initializing database...");
+                DatabaseInitializer.initializeDatabase();
+                
+                // Test connection
+                try (Connection conn = DBConnection.getConnection()) {
+                    if (conn != null && !conn.isClosed()) {
+                        System.out.println("Database connection successful. Connected to: " + DBConnection.getDatabase());
+                        
+                        // Show login frame, then open dashboard on successful login
+                        LoginFrame loginFrame = new LoginFrame(() -> {
+                            SwingUtilities.invokeLater(() -> new DashboardFrame().setVisible(true));
+                        });
+                        loginFrame.setVisible(true);
+                    } else {
+                        System.err.println("Database connection failed: connection is null or closed.");
+                        showDatabaseError("Connection is null or closed.");
+                    }
                 }
             } catch (Exception e) {
-                System.err.println("Database connection failed: " + e.getMessage());
+                System.err.println("Database initialization or connection failed: " + e.getMessage());
                 e.printStackTrace();
                 showDatabaseError(e.getMessage());
             }
@@ -40,12 +55,12 @@ public class MainApp {
 
     private static void showDatabaseError(String detail) {
         JOptionPane.showMessageDialog(null,
-                "Could not connect to MySQL.\n\n"
-                        + "• Start MySQL and create database autocare_db (run Autocare/sql/create_tables.sql).\n"
-                        + "• Place config.properties next to the JAR with db.host, db.port, db.database, db.username, db.password.\n"
-                        + "• Default credentials are root/root if you do not use a config file.\n\n"
+                "Database initialization failed.\n\n"
+                        + "The application uses an embedded H2 database which should work automatically.\n"
+                        + "If the problem persists, check that the application has write permissions\n"
+                        + "to the user home directory (" + System.getProperty("user.home") + ").\n\n"
                         + "Details: " + detail,
-                "Database connection failed",
+                "Database Error",
                 JOptionPane.ERROR_MESSAGE);
         System.exit(1);
     }

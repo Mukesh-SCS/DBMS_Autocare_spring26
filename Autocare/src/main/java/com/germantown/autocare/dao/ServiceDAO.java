@@ -46,10 +46,35 @@ public class ServiceDAO {
     }
 
     public boolean delete(int serviceId) throws SQLException {
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(DELETE)) {
-            ps.setInt(1, serviceId);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            // First delete all appointment_service entries that reference this service
+            String deleteAppointmentServices = "DELETE FROM Appointment_Service WHERE Service_ID=?";
+            try (PreparedStatement ps = conn.prepareStatement(deleteAppointmentServices)) {
+                ps.setInt(1, serviceId);
+                ps.executeUpdate();
+            }
+            
+            // Delete all service_part entries that reference this service
+            String deleteServiceParts = "DELETE FROM service_part WHERE service_id=?";
+            try (PreparedStatement ps = conn.prepareStatement(deleteServiceParts)) {
+                ps.setInt(1, serviceId);
+                ps.executeUpdate();
+            }
+            
+            // Finally delete the service
+            try (PreparedStatement ps = conn.prepareStatement(DELETE)) {
+                ps.setInt(1, serviceId);
+                boolean result = ps.executeUpdate() > 0;
+                
+                // Reset service auto-increment
+                if (result) {
+                    try (PreparedStatement resetPs = conn.prepareStatement("ALTER TABLE service ALTER COLUMN service_id RESTART WITH 1")) {
+                        resetPs.executeUpdate();
+                    }
+                }
+                
+                return result;
+            }
         }
     }
 

@@ -18,17 +18,24 @@
     </properties>
 
     <dependencies>
+        <!-- H2 Embedded Database (portable, no installation required) -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
         </dependency>
     </dependencies>
 
     <build>
         <finalName>autocare-germantown</finalName>
-        <!-- Note: config.properties is loaded from the working directory (same folder as JAR) at runtime,
-             not packaged with the JAR. Users should create config.properties next to the JAR file. -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
