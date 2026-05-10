@@ -44,10 +44,28 @@ public class PartDAO {
     }
 
     public boolean delete(int partId) throws SQLException {
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(DELETE)) {
-            ps.setInt(1, partId);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            // First delete all service_part entries that reference this part
+            String deleteServicePart = "DELETE FROM service_part WHERE Part_ID=?";
+            try (PreparedStatement ps = conn.prepareStatement(deleteServicePart)) {
+                ps.setInt(1, partId);
+                ps.executeUpdate();
+            }
+            
+            // Then delete the part
+            try (PreparedStatement ps = conn.prepareStatement(DELETE)) {
+                ps.setInt(1, partId);
+                boolean result = ps.executeUpdate() > 0;
+                
+                // Reset part auto-increment
+                if (result) {
+                    try (PreparedStatement resetPs = conn.prepareStatement("ALTER TABLE Part ALTER COLUMN Part_ID RESTART WITH 1")) {
+                        resetPs.executeUpdate();
+                    }
+                }
+                
+                return result;
+            }
         }
     }
 

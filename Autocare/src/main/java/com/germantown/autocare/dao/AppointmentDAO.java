@@ -54,10 +54,52 @@ public class AppointmentDAO {
     }
 
     public boolean delete(int appointmentId) throws SQLException {
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(DELETE)) {
-            ps.setInt(1, appointmentId);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            // Delete related payments first
+            String deletePayments = "DELETE FROM Payment WHERE Invoice_ID IN (SELECT Invoice_ID FROM Invoice WHERE Appointment_ID=?)";
+            try (PreparedStatement ps = conn.prepareStatement(deletePayments)) {
+                ps.setInt(1, appointmentId);
+                ps.executeUpdate();
+            }
+            
+            // Delete related invoices
+            String deleteInvoices = "DELETE FROM Invoice WHERE Appointment_ID=?";
+            try (PreparedStatement ps = conn.prepareStatement(deleteInvoices)) {
+                ps.setInt(1, appointmentId);
+                ps.executeUpdate();
+            }
+            
+            // Delete appointment services
+            String deleteAppointmentServices = "DELETE FROM Appointment_Service WHERE Appointment_ID=?";
+            try (PreparedStatement ps = conn.prepareStatement(deleteAppointmentServices)) {
+                ps.setInt(1, appointmentId);
+                ps.executeUpdate();
+            }
+            
+            // Finally delete the appointment
+            try (PreparedStatement ps = conn.prepareStatement(DELETE)) {
+                ps.setInt(1, appointmentId);
+                boolean result = ps.executeUpdate() > 0;
+                
+                // Reset appointment auto-increment
+                if (result) {
+                    try (PreparedStatement resetPs = conn.prepareStatement("ALTER TABLE Appointment ALTER COLUMN Appointment_ID RESTART WITH 1")) {
+                        resetPs.executeUpdate();
+                    }
+                    
+                    // Reset invoice auto-increment
+                    try (PreparedStatement resetPs = conn.prepareStatement("ALTER TABLE Invoice ALTER COLUMN Invoice_ID RESTART WITH 1")) {
+                        resetPs.executeUpdate();
+                    }
+                    
+                    // Reset payment auto-increment
+                    try (PreparedStatement resetPs = conn.prepareStatement("ALTER TABLE Payment ALTER COLUMN Payment_ID RESTART WITH 1")) {
+                        resetPs.executeUpdate();
+                    }
+                }
+                
+                return result;
+            }
         }
     }
 
