@@ -53,7 +53,7 @@ public class HistoryPanel extends JPanel {
 
         // Create payment table
         paymentTableModel = new DefaultTableModel(
-            new String[]{"Payment ID", "Invoice ID", "Customer Name", "Payment Date", "Amount", "Method", "Status"},
+            new String[]{"Payment ID", "Invoice ID", "Appointment ID", "Customer Name", "Payment Date", "Amount", "Method", "Status"},
             0
         ) {
             @Override
@@ -139,6 +139,7 @@ public class HistoryPanel extends JPanel {
                 paymentTableModel.addRow(new Object[]{
                     paymentId != null ? paymentId : "—",
                     payment.get("invoiceId"),
+                    payment.get("appointmentId"),
                     payment.get("customerName"),
                     payment.get("paymentDate") != null ? payment.get("paymentDate") : "—",
                     amount != null ? String.format("$%.2f", ((Number) amount).doubleValue()) : "—",
