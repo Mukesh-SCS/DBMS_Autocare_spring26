@@ -68,10 +68,29 @@ public class CustomerDAO {
     }
 
     public boolean delete(int customerId) throws SQLException {
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(DELETE)) {
-            ps.setInt(1, customerId);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            // Payments must go first (FK → Invoice)
+            try (PreparedStatement psPayments = conn.prepareStatement(
+                    "DELETE p FROM Payment p " +
+                    "JOIN Invoice i ON p.Invoice_ID = i.Invoice_ID " +
+                    "JOIN Appointment a ON i.Appointment_ID = a.Appointment_ID " +
+                    "WHERE a.Customer_ID = ?")) {
+                psPayments.setInt(1, customerId);
+                psPayments.executeUpdate();
+            }
+            // Invoices next (FK → Appointment, no cascade defined)
+            try (PreparedStatement psInvoices = conn.prepareStatement(
+                    "DELETE i FROM Invoice i " +
+                    "JOIN Appointment a ON i.Appointment_ID = a.Appointment_ID " +
+                    "WHERE a.Customer_ID = ?")) {
+                psInvoices.setInt(1, customerId);
+                psInvoices.executeUpdate();
+            }
+            // Customer cascade handles vehicles and appointments
+            try (PreparedStatement psCustomer = conn.prepareStatement(DELETE)) {
+                psCustomer.setInt(1, customerId);
+                return psCustomer.executeUpdate() > 0;
+            }
         }
     }
 

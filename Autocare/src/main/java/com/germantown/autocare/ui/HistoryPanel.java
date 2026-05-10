@@ -134,13 +134,15 @@ public class HistoryPanel extends JPanel {
         try {
             List<Map<String, Object>> payments = paymentDAO.getPaymentHistory();
             for (Map<String, Object> payment : payments) {
+                Object paymentId = payment.get("paymentId");
+                Object amount = payment.get("paymentAmount");
                 paymentTableModel.addRow(new Object[]{
-                    payment.get("paymentId"),
+                    paymentId != null ? paymentId : "—",
                     payment.get("invoiceId"),
                     payment.get("customerName"),
-                    payment.get("paymentDate"),
-                    String.format("$%.2f", payment.get("paymentAmount")),
-                    payment.get("paymentMethod"),
+                    payment.get("paymentDate") != null ? payment.get("paymentDate") : "—",
+                    amount != null ? String.format("$%.2f", ((Number) amount).doubleValue()) : "—",
+                    payment.get("paymentMethod") != null ? payment.get("paymentMethod") : "—",
                     payment.get("paymentStatus")
                 });
             }

@@ -53,6 +53,21 @@ public class InvoiceDAO {
         return null;
     }
 
+    public List<Invoice> findAll() {
+        String query = "SELECT * FROM Invoice ORDER BY Invoice_ID DESC";
+        List<Invoice> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // Returns all invoices that are not yet fully paid.
     public List<Invoice> findUnpaidInvoices() {
         String query = "SELECT * FROM Invoice WHERE Payment_Status <> 'Paid'";

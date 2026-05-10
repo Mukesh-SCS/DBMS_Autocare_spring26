@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -14,7 +16,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import com.germantown.autocare.dao.AppointmentDAO;
+import com.germantown.autocare.dao.CustomerDAO;
+import com.germantown.autocare.dao.InvoiceDAO;
+import com.germantown.autocare.dao.ServiceDAO;
+import com.germantown.autocare.model.Appointment;
+import com.germantown.autocare.model.Customer;
 import com.germantown.autocare.model.Invoice;
+import com.germantown.autocare.model.Service;
 import com.germantown.autocare.service.BillingService;
 import com.germantown.autocare.util.UIHelper;
 import com.germantown.autocare.util.UiTheme;
@@ -101,17 +110,51 @@ public class InvoicePaymentPanel extends JPanel {
     }
 
     private void onLoadInvoice() {
-        String input = JOptionPane.showInputDialog(this, "Enter Invoice ID:", "Load Invoice", JOptionPane.QUESTION_MESSAGE);
-        if (input == null || input.trim().isEmpty()) return;
-        int id;
+        List<Invoice> invoices;
+        List<Appointment> appointments;
+        List<Customer> customers;
         try {
-            id = Integer.parseInt(input.trim());
-        } catch (NumberFormatException ex) {
-            UIHelper.showError(this, "Invoice ID must be a number.");
+            invoices = new InvoiceDAO().findAll();
+            appointments = new AppointmentDAO().findAll();
+            customers = new CustomerDAO().findAll();
+        } catch (Exception ex) {
+            UIHelper.showError(this, "Failed to load invoices: " + ex.getMessage());
             return;
         }
+        if (invoices.isEmpty()) {
+            UIHelper.showError(this, "No invoices found.");
+            return;
+        }
+
+        JComboBox<InvoiceItem> invoiceCombo = new JComboBox<>();
+        for (Invoice inv : invoices) {
+            String custName = appointments.stream()
+                .filter(a -> a.getAppointmentId() == inv.getAppointmentID())
+                .findFirst()
+                .map(a -> customers.stream()
+                    .filter(c -> c.getCustomerId() == a.getCustomerId())
+                    .findFirst()
+                    .map(c -> c.getFirstName() + " " + c.getLastName())
+                    .orElse("?"))
+                .orElse("?");
+            String label = String.format("ID: %d | %s | $%.2f | %s",
+                inv.getInvoiceID(), custName, inv.getTotalAmount(), inv.getPaymentStatus());
+            invoiceCombo.addItem(new InvoiceItem(inv.getInvoiceID(), label));
+        }
+
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.add(new JLabel("Select Invoice:"), BorderLayout.NORTH);
+        panel.add(invoiceCombo, BorderLayout.CENTER);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Load Invoice",
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION) return;
+
+        InvoiceItem selected = (InvoiceItem) invoiceCombo.getSelectedItem();
+        if (selected == null) return;
+
         try {
-            Invoice invoice = billingService.getInvoice(id);
+            Invoice invoice = billingService.getInvoice(selected.id);
             if (invoice == null) {
                 UIHelper.showError(this, "Invoice not found.");
                 return;
@@ -180,24 +223,90 @@ public class InvoicePaymentPanel extends JPanel {
     }
 
     private void onCreateInvoice() {
-        String apptInput = JOptionPane.showInputDialog(this, "Enter Appointment ID:", "Create Invoice", JOptionPane.QUESTION_MESSAGE);
-        if (apptInput == null || apptInput.trim().isEmpty()) return;
-        int appointmentId;
+        List<Appointment> appointments;
+        List<Customer> customers;
+        List<Service> services;
         try {
-            appointmentId = Integer.parseInt(apptInput.trim());
-        } catch (NumberFormatException ex) {
-            UIHelper.showError(this, "Appointment ID must be a number.");
+            appointments = new AppointmentDAO().findAll();
+            customers = new CustomerDAO().findAll();
+            services = new ServiceDAO().findAll();
+        } catch (Exception ex) {
+            UIHelper.showError(this, "Failed to load data: " + ex.getMessage());
+            return;
+        }
+        if (appointments.isEmpty()) {
+            UIHelper.showError(this, "No appointments found. Schedule an appointment first.");
             return;
         }
 
+        // Step 1: Select appointment
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        JComboBox<AppointmentItem> apptCombo = new JComboBox<>();
+        for (Appointment a : appointments) {
+            String custName = customers.stream()
+                .filter(c -> c.getCustomerId() == a.getCustomerId())
+                .findFirst()
+                .map(c -> c.getFirstName() + " " + c.getLastName())
+                .orElse("?");
+            String label = String.format("ID: %d | %s | %s | %s",
+                a.getAppointmentId(), custName,
+                a.getAppointmentDate() != null ? a.getAppointmentDate().format(fmt) : "?",
+                a.getStatus());
+            apptCombo.addItem(new AppointmentItem(a.getAppointmentId(), label));
+        }
+
+        JPanel apptPanel = new JPanel(new BorderLayout(5, 5));
+        apptPanel.add(new JLabel("Select Appointment:"), BorderLayout.NORTH);
+        apptPanel.add(apptCombo, BorderLayout.CENTER);
+
+        int result = JOptionPane.showConfirmDialog(this, apptPanel, "Create Invoice",
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION) return;
+
+        AppointmentItem selected = (AppointmentItem) apptCombo.getSelectedItem();
+        if (selected == null) return;
+        int appointmentId = selected.id;
+
+        // Step 2: Invoice date
         String date = JOptionPane.showInputDialog(this, "Invoice Date (YYYY-MM-DD):", "Create Invoice", JOptionPane.QUESTION_MESSAGE);
         if (date == null || date.trim().isEmpty()) return;
 
-        String totalStr = JOptionPane.showInputDialog(this, "Total Amount ($):", "Create Invoice", JOptionPane.QUESTION_MESSAGE);
-        if (totalStr == null || totalStr.trim().isEmpty()) return;
+        // Step 3: Service dropdown + editable total amount
+        JComboBox<ServiceItem> serviceCombo = new JComboBox<>();
+        serviceCombo.addItem(new ServiceItem("-- Select service --", 0.0));
+        for (Service s : services) {
+            serviceCombo.addItem(new ServiceItem(
+                s.getServiceName(),
+                s.getBasePrice() != null ? s.getBasePrice().doubleValue() : 0.0));
+        }
+        JTextField totalField = new JTextField(10);
+        serviceCombo.addActionListener(e -> {
+            ServiceItem si = (ServiceItem) serviceCombo.getSelectedItem();
+            if (si != null && si.price > 0) {
+                totalField.setText(String.format("%.2f", si.price));
+            } else {
+                totalField.setText("");
+            }
+        });
+
+        JPanel totalPanel = new JPanel(new GridLayout(2, 2, 8, 8));
+        totalPanel.add(new JLabel("Service:"));
+        totalPanel.add(serviceCombo);
+        totalPanel.add(new JLabel("Total Amount ($):"));
+        totalPanel.add(totalField);
+
+        int totalResult = JOptionPane.showConfirmDialog(this, totalPanel, "Create Invoice",
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (totalResult != JOptionPane.OK_OPTION) return;
+
+        String totalStr = totalField.getText().trim();
+        if (totalStr.isEmpty()) {
+            UIHelper.showError(this, "Total amount is required.");
+            return;
+        }
         double total;
         try {
-            total = Double.parseDouble(totalStr.trim());
+            total = Double.parseDouble(totalStr);
         } catch (NumberFormatException ex) {
             UIHelper.showError(this, "Total amount must be a valid number.");
             return;
@@ -212,6 +321,29 @@ public class InvoicePaymentPanel extends JPanel {
             UIHelper.showMessage(this, "Invoice created. ID = " + invoice.getInvoiceID());
         } catch (Exception ex) {
             UIHelper.showError(this, "Failed to create invoice: " + ex.getMessage());
+        }
+    }
+
+    private static class AppointmentItem {
+        final int id;
+        private final String label;
+        AppointmentItem(int id, String label) { this.id = id; this.label = label; }
+        @Override public String toString() { return label; }
+    }
+
+    private static class InvoiceItem {
+        final int id;
+        private final String label;
+        InvoiceItem(int id, String label) { this.id = id; this.label = label; }
+        @Override public String toString() { return label; }
+    }
+
+    private static class ServiceItem {
+        final String name;
+        final double price;
+        ServiceItem(String name, double price) { this.name = name; this.price = price; }
+        @Override public String toString() {
+            return price > 0 ? name + " ($" + String.format("%.2f", price) + ")" : name;
         }
     }
 }

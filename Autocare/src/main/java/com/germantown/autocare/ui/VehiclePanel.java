@@ -166,6 +166,16 @@ public class VehiclePanel extends JPanel {
         } catch (Exception ignored) {}
     }
 
+    private String generateVin() {
+        String chars = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789";
+        StringBuilder vin = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < 17; i++) {
+            vin.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return vin.toString();
+    }
+
     private void addVehicle() {
         CustomerItem ci = (CustomerItem) customerCombo.getSelectedItem();
         if (ci == null || ci.id == 0) {
@@ -186,8 +196,13 @@ public class VehiclePanel extends JPanel {
             UIHelper.showError(this, "Year must be a number.");
             return;
         }
+        String vin = vinField.getText().trim();
+        if (vin.isEmpty()) {
+            vin = generateVin();
+            vinField.setText(vin);
+        }
         try {
-            Vehicle v = new Vehicle(ci.id, vinField.getText().trim(), make, model, year, plateField.getText().trim());
+            Vehicle v = new Vehicle(ci.id, vin, make, model, year, plateField.getText().trim());
             vehicleDAO.insert(v);
             UIHelper.showMessage(this, "Vehicle added.");
             clearForm();
