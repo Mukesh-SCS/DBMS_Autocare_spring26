@@ -69,24 +69,23 @@ public class CustomerDAO {
 
     public boolean delete(int customerId) throws SQLException {
         try (Connection conn = DBConnection.getConnection()) {
-            // Payments must go first (FK → Invoice)
+            // Embedded H2 does not support MySQL multi-table DELETE ... JOIN; use subqueries instead.
+            // Payments first (FK → Invoice).
             try (PreparedStatement psPayments = conn.prepareStatement(
-                    "DELETE p FROM Payment p " +
-                    "JOIN Invoice i ON p.Invoice_ID = i.Invoice_ID " +
-                    "JOIN Appointment a ON i.Appointment_ID = a.Appointment_ID " +
-                    "WHERE a.Customer_ID = ?")) {
+                    "DELETE FROM Payment WHERE Invoice_ID IN ("
+                            + "SELECT Invoice_ID FROM Invoice WHERE Appointment_ID IN ("
+                            + "SELECT Appointment_ID FROM Appointment WHERE Customer_ID=?))")) {
                 psPayments.setInt(1, customerId);
                 psPayments.executeUpdate();
             }
-            // Invoices next (FK → Appointment, no cascade defined)
+            // Invoices next (FK → Appointment).
             try (PreparedStatement psInvoices = conn.prepareStatement(
-                    "DELETE i FROM Invoice i " +
-                    "JOIN Appointment a ON i.Appointment_ID = a.Appointment_ID " +
-                    "WHERE a.Customer_ID = ?")) {
+                    "DELETE FROM Invoice WHERE Appointment_ID IN ("
+                            + "SELECT Appointment_ID FROM Appointment WHERE Customer_ID=?)")) {
                 psInvoices.setInt(1, customerId);
                 psInvoices.executeUpdate();
             }
-            // Customer cascade handles vehicles and appointments
+            // ON DELETE CASCADE from customer removes vehicles and appointments (and Appointment_Service rows).
             try (PreparedStatement psCustomer = conn.prepareStatement(DELETE)) {
                 psCustomer.setInt(1, customerId);
                 return psCustomer.executeUpdate() > 0;

@@ -3,6 +3,7 @@ package com.germantown.autocare.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,8 +18,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
 import com.germantown.autocare.dao.AppointmentDAO;
+import com.germantown.autocare.dao.EmployeeDAO;
 import com.germantown.autocare.dao.PaymentDAO;
 import com.germantown.autocare.model.Appointment;
+import com.germantown.autocare.model.Employee;
 import com.germantown.autocare.util.UiTheme;
 
 /**
@@ -32,6 +35,7 @@ public class HistoryPanel extends JPanel {
     private DefaultTableModel serviceTableModel;
     private final PaymentDAO paymentDAO = new PaymentDAO();
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
+    private final EmployeeDAO employeeDAO = new EmployeeDAO();
 
     public HistoryPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -94,7 +98,7 @@ public class HistoryPanel extends JPanel {
 
         // Create service table
         serviceTableModel = new DefaultTableModel(
-            new String[]{"Appointment ID", "Customer ID", "Vehicle ID", "Appointment Date", "Status", "Notes"},
+            new String[]{"Appointment ID", "Customer ID", "Vehicle ID", "Employee", "Appointment Date", "Status", "Notes"},
             0
         ) {
             @Override
@@ -157,12 +161,22 @@ public class HistoryPanel extends JPanel {
         serviceTableModel.setRowCount(0);
 
         try {
+            Map<Integer, String> employeeNames = new HashMap<>();
+            for (Employee emp : employeeDAO.findAll()) {
+                employeeNames.put(emp.getEmployeeId(), emp.getFirstName() + " " + emp.getLastName());
+            }
             List<Appointment> appointments = appointmentDAO.findAll();
             for (Appointment appt : appointments) {
+                String empLabel = "—";
+                if (appt.getEmployeeId() != null) {
+                    empLabel = employeeNames.getOrDefault(appt.getEmployeeId(),
+                            "ID " + appt.getEmployeeId());
+                }
                 serviceTableModel.addRow(new Object[]{
                     appt.getAppointmentId(),
                     appt.getCustomerId(),
                     appt.getVehicleId(),
+                    empLabel,
                     appt.getAppointmentDate(),
                     appt.getStatus(),
                     appt.getNotes() != null ? appt.getNotes() : ""

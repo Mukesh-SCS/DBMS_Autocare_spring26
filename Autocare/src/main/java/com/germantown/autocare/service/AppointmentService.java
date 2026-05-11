@@ -13,14 +13,15 @@ public class AppointmentService {
 
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
 
-    public Appointment scheduleAppointment(int customerId, int vehicleId, LocalDateTime when, String notes) throws Exception {
-        Appointment a = new Appointment(customerId, vehicleId, when, "Scheduled", notes);
+    public Appointment scheduleAppointment(int customerId, int vehicleId, LocalDateTime when, String notes,
+                                          Integer employeeId) throws Exception {
+        Appointment a = new Appointment(customerId, vehicleId, when, "Scheduled", notes, employeeId);
         appointmentDAO.insert(a);
         return a;
     }
 
-    public boolean updateStatus(int appointmentId, String status) throws Exception {
-        return appointmentDAO.updateStatus(appointmentId, status);
+    public boolean updateAppointmentDetails(int appointmentId, String status, Integer employeeId) throws Exception {
+        return appointmentDAO.updateDetails(appointmentId, status, employeeId);
     }
 
     public boolean cancelAppointment(int appointmentId) throws Exception {

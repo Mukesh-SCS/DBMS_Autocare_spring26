@@ -60,7 +60,7 @@
                     </archive>
                 </configuration>
             </plugin>
-            <!-- Fat JAR with all dependencies (including MySQL driver) for runnable release -->
+            <!-- Fat JAR with all dependencies (e.g. H2) for runnable release -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

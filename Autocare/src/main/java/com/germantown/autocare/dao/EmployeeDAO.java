@@ -3,7 +3,14 @@ package com.germantown.autocare.dao;
 import com.germantown.autocare.config.DBConnection;
 import com.germantown.autocare.model.Employee;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,7 +91,11 @@ public class EmployeeDAO {
         ps.setString(4, e.getEmail());
         ps.setString(5, e.getPhone());
         ps.setDate(6, e.getHireDate() != null ? Date.valueOf(e.getHireDate()) : null);
-        ps.setBigDecimal(7, e.getHourlyRate());
+        if (e.getHourlyRate() != null) {
+            ps.setBigDecimal(7, e.getHourlyRate());
+        } else {
+            ps.setNull(7, Types.DECIMAL);
+        }
     }
 
     private static Employee mapRow(ResultSet rs) throws SQLException {
