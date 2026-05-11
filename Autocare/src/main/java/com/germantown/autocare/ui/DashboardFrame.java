@@ -10,7 +10,7 @@ import javax.swing.JTabbedPane;
 import com.germantown.autocare.util.UiTheme;
 
 /**
- * Main dashboard with tabs for Customers, Vehicles, Appointments, Services/Parts, and Billing.
+ * Main dashboard with tabs for Customers, Employees, Vehicles, Appointments, Services/Parts, Billing, and History.
  */
 public class DashboardFrame extends JFrame {
 
@@ -23,6 +23,7 @@ public class DashboardFrame extends JFrame {
         JTabbedPane tabs = new JTabbedPane();
         tabs.setBorder(BorderFactory.createEmptyBorder(8, 12, 12, 12));
         tabs.addTab("Customers", new CustomerPanel());
+        tabs.addTab("Employees", new EmployeePanel());
         VehiclePanel vehiclePanel = new VehiclePanel();
         tabs.addTab("Vehicles", vehiclePanel);
 

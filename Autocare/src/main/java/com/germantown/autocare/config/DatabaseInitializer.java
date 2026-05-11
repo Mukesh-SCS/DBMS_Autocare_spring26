@@ -1,6 +1,9 @@
 package com.germantown.autocare.config;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -37,6 +40,7 @@ public class DatabaseInitializer {
             } else {
                 System.out.println("Database tables already exist. Skipping initialization.");
             }
+            migrateAppointmentEmployeeColumn(conn);
             initialized = true;
         } catch (Exception e) {
             System.err.println("Error initializing database: " + e.getMessage());
@@ -55,6 +59,41 @@ public class DatabaseInitializer {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * Adds Employee_ID to Appointment when upgrading an older embedded DB that was created before this column existed.
+     */
+    private static void migrateAppointmentEmployeeColumn(Connection conn) throws SQLException {
+        if (appointmentHasEmployeeColumn(conn)) {
+            return;
+        }
+        System.out.println("Migrating: adding Employee_ID to Appointment...");
+        try (Statement st = conn.createStatement()) {
+            st.execute("ALTER TABLE Appointment ADD COLUMN Employee_ID INT NULL");
+        }
+        try (Statement st = conn.createStatement()) {
+            st.execute("ALTER TABLE Appointment ADD CONSTRAINT fk_appointment_employee "
+                    + "FOREIGN KEY (Employee_ID) REFERENCES employee(employee_id) ON DELETE SET NULL");
+        } catch (SQLException e) {
+            System.err.println("Warning: could not add fk_appointment_employee (may already exist): " + e.getMessage());
+        }
+        System.out.println("Migration complete.");
+    }
+
+    private static boolean appointmentHasEmployeeColumn(Connection conn) throws SQLException {
+        DatabaseMetaData md = conn.getMetaData();
+        String[] tableNames = { "APPOINTMENT", "Appointment" };
+        for (String table : tableNames) {
+            try (ResultSet rs = md.getColumns(null, null, table, null)) {
+                while (rs.next()) {
+                    if ("Employee_ID".equalsIgnoreCase(rs.getString("COLUMN_NAME"))) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
     
     /**

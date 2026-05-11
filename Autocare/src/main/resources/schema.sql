@@ -94,13 +94,16 @@ CREATE TABLE Appointment (
     Appointment_ID INT AUTO_INCREMENT PRIMARY KEY,
     Customer_ID INT NOT NULL,
     Vehicle_ID INT NOT NULL,
+    Employee_ID INT,
     Appointment_Date DATETIME NOT NULL,
     Status VARCHAR(20) DEFAULT 'Scheduled',
     Notes VARCHAR(255),
     CONSTRAINT fk_appointment_customer FOREIGN KEY (Customer_ID)
         REFERENCES customer(customer_id) ON DELETE CASCADE,
     CONSTRAINT fk_appointment_vehicle FOREIGN KEY (Vehicle_ID)
-        REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
+        REFERENCES vehicle(vehicle_id) ON DELETE CASCADE,
+    CONSTRAINT fk_appointment_employee FOREIGN KEY (Employee_ID)
+        REFERENCES employee(employee_id) ON DELETE SET NULL
 );
 
 -- APPOINTMENT_SERVICE (M:N)

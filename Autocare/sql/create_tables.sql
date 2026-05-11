@@ -3,16 +3,17 @@ USE autocare_db;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS payment;
-DROP TABLE IF EXISTS invoice;
-DROP TABLE IF EXISTS appointment_service;
-DROP TABLE IF EXISTS service_part;
-DROP TABLE IF EXISTS appointment;
-DROP TABLE IF EXISTS service;
-DROP TABLE IF EXISTS part;
-DROP TABLE IF EXISTS employee;
-DROP TABLE IF EXISTS vehicle;
-DROP TABLE IF EXISTS customer;
+-- Names must match CREATE TABLE identifiers (case-sensitive on many MySQL/Linux installs).
+DROP TABLE IF EXISTS `Payment`;
+DROP TABLE IF EXISTS `Invoice`;
+DROP TABLE IF EXISTS `Appointment_Service`;
+DROP TABLE IF EXISTS `service_part`;
+DROP TABLE IF EXISTS `Appointment`;
+DROP TABLE IF EXISTS `service`;
+DROP TABLE IF EXISTS `Part`;
+DROP TABLE IF EXISTS `employee`;
+DROP TABLE IF EXISTS `vehicle`;
+DROP TABLE IF EXISTS `customer`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -37,7 +38,7 @@ CREATE TABLE vehicle (
                          vin VARCHAR(17),
                          make VARCHAR(50) NOT NULL,
                          model VARCHAR(50) NOT NULL,
-                         year SMALLINT NOT NULL,
+                         `year` SMALLINT NOT NULL,
                          license_plate VARCHAR(20),
                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -97,13 +98,16 @@ CREATE TABLE Appointment (
                              Appointment_ID INT AUTO_INCREMENT PRIMARY KEY,
                              Customer_ID INT NOT NULL,
                              Vehicle_ID INT NOT NULL,
+                             Employee_ID INT NULL,
                              Appointment_Date DATETIME NOT NULL,
                              Status VARCHAR(20) DEFAULT 'Scheduled',
                              Notes VARCHAR(255),
                              CONSTRAINT fk_appointment_customer FOREIGN KEY (Customer_ID)
                                  REFERENCES customer(customer_id) ON DELETE CASCADE,
                              CONSTRAINT fk_appointment_vehicle FOREIGN KEY (Vehicle_ID)
-                                 REFERENCES vehicle(vehicle_id) ON DELETE CASCADE
+                                 REFERENCES vehicle(vehicle_id) ON DELETE CASCADE,
+                             CONSTRAINT fk_appointment_employee FOREIGN KEY (Employee_ID)
+                                 REFERENCES employee(employee_id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- APPOINTMENT_SERVICE (M:N)

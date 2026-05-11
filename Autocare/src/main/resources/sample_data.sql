@@ -51,16 +51,16 @@ INSERT INTO service_part (service_id, Part_ID, quantity) VALUES
 (4, 4, 1),
 (6, 6, 2);
 
--- APPOINTMENTS
-INSERT INTO Appointment (Appointment_ID, Customer_ID, Vehicle_ID, Appointment_Date, Status, Notes) VALUES
-(1, 1, 1, '2026-01-08 09:00:00', 'Completed', 'Routine maintenance'),
-(2, 2, 3, '2026-01-10 10:30:00', 'Completed', 'Truck brake noise'),
-(3, 1, 2, '2026-01-14 14:00:00', 'Completed', 'Long trip prep'),
-(4, 3, 4, '2026-01-15 11:00:00', 'Completed', 'No-start issue'),
-(5, 4, 5, '2026-02-01 09:00:00', 'Scheduled', 'Annual inspection'),
-(6, 5, 6, '2026-01-20 16:00:00', 'Cancelled', 'Customer rescheduled'),
-(7, 2, 3, '2026-01-22 08:00:00', 'Completed', 'Follow-up'),
-(8, 4, 5, '2026-01-25 13:00:00', 'Completed', 'AC not cold');
+-- APPOINTMENTS (Employee_ID optional — assigned technician or advisor)
+INSERT INTO Appointment (Appointment_ID, Customer_ID, Vehicle_ID, Employee_ID, Appointment_Date, Status, Notes) VALUES
+(1, 1, 1, 1, '2026-01-08 09:00:00', 'Completed', 'Routine maintenance'),
+(2, 2, 3, 3, '2026-01-10 10:30:00', 'Completed', 'Truck brake noise'),
+(3, 1, 2, 1, '2026-01-14 14:00:00', 'Completed', 'Long trip prep'),
+(4, 3, 4, 3, '2026-01-15 11:00:00', 'Completed', 'No-start issue'),
+(5, 4, 5, 2, '2026-02-01 09:00:00', 'Scheduled', 'Annual inspection'),
+(6, 5, 6, NULL, '2026-01-20 16:00:00', 'Cancelled', 'Customer rescheduled'),
+(7, 2, 3, 1, '2026-01-22 08:00:00', 'Completed', 'Follow-up'),
+(8, 4, 5, 3, '2026-01-25 13:00:00', 'Completed', 'AC not cold');
 
 -- APPOINTMENT_SERVICE (line items)
 INSERT INTO Appointment_Service (Appointment_ID, Service_ID, Quantity, Line_Price) VALUES
