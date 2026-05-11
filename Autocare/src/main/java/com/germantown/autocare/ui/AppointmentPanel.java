@@ -6,7 +6,9 @@ import java.awt.GridLayout;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -21,9 +23,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
 import com.germantown.autocare.dao.CustomerDAO;
+import com.germantown.autocare.dao.EmployeeDAO;
 import com.germantown.autocare.dao.VehicleDAO;
 import com.germantown.autocare.model.Appointment;
 import com.germantown.autocare.model.Customer;
+import com.germantown.autocare.model.Employee;
 import com.germantown.autocare.model.Vehicle;
 import com.germantown.autocare.service.AppointmentService;
 import com.germantown.autocare.util.UIHelper;
@@ -37,17 +41,19 @@ public class AppointmentPanel extends JPanel {
     private final AppointmentService appointmentService = new AppointmentService();
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final VehicleDAO vehicleDAO = new VehicleDAO();
+    private final EmployeeDAO employeeDAO = new EmployeeDAO();
 
     private final JTable table;
     private final DefaultTableModel tableModel;
     private final JComboBox<CustomerItem> customerCombo;
     private final JComboBox<VehicleItem> vehicleCombo;
+    private final JComboBox<EmployeeItem> employeeCombo;
     private final JTextField dateTimeField;
     private final JTextField notesField;
     private final JComboBox<String> statusCombo;
-    private final JButton addBtn, updateStatusBtn, cancelBtn, refreshBtn, clearBtn;
+    private final JButton addBtn, updateBtn, cancelBtn, refreshBtn, clearBtn;
 
-    private static final String[] COLUMNS = { "ID", "Customer", "Vehicle", "When", "Status", "Notes" };
+    private static final String[] COLUMNS = { "ID", "Customer", "Vehicle", "Employee", "When", "Status", "Notes" };
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public AppointmentPanel() {
@@ -84,6 +90,10 @@ public class AppointmentPanel extends JPanel {
         vehicleCombo = new JComboBox<>();
         form.add(vehicleCombo);
 
+        form.add(new JLabel("Employee:"));
+        employeeCombo = new JComboBox<>();
+        form.add(employeeCombo);
+
         form.add(new JLabel("When (YYYY-MM-DD HH:MM):"));
         dateTimeField = new JTextField();
         form.add(dateTimeField);
@@ -102,11 +112,11 @@ public class AppointmentPanel extends JPanel {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 10));
         UiTheme.paintPanelBackground(buttons);
         addBtn = new JButton("Schedule");
-        updateStatusBtn = new JButton("Update Status");
+        updateBtn = new JButton("Save changes");
         cancelBtn = new JButton("Cancel Appointment");
         refreshBtn = new JButton("Refresh");
         clearBtn = new JButton("Clear");
-        for (JButton b : new JButton[]{addBtn, updateStatusBtn, cancelBtn, refreshBtn, clearBtn}) {
+        for (JButton b : new JButton[]{addBtn, updateBtn, cancelBtn, refreshBtn, clearBtn}) {
             UiTheme.styleToolbarButton(b);
         }
 
@@ -129,7 +139,7 @@ public class AppointmentPanel extends JPanel {
         });
 
         addBtn.addActionListener(e -> schedule());
-        updateStatusBtn.addActionListener(e -> updateStatus());
+        updateBtn.addActionListener(e -> updateAppointment());
         cancelBtn.addActionListener(e -> cancel());
         refreshBtn.addActionListener(e -> {
             loadCombos();
@@ -138,7 +148,7 @@ public class AppointmentPanel extends JPanel {
         clearBtn.addActionListener(e -> clearForm());
 
         buttons.add(addBtn);
-        buttons.add(updateStatusBtn);
+        buttons.add(updateBtn);
         buttons.add(cancelBtn);
         buttons.add(refreshBtn);
         buttons.add(clearBtn);
@@ -165,6 +175,16 @@ public class AppointmentPanel extends JPanel {
 
         vehicleCombo.removeAllItems();
         vehicleCombo.addItem(new VehicleItem(0, "-- Select Vehicle --"));
+
+        employeeCombo.removeAllItems();
+        employeeCombo.addItem(new EmployeeItem(0, "-- No employee --"));
+        try {
+            for (Employee emp : employeeDAO.findAll()) {
+                employeeCombo.addItem(new EmployeeItem(emp.getEmployeeId(), emp.toString()));
+            }
+        } catch (Exception ex) {
+            UIHelper.showError(this, "Load employees failed: " + ex.getMessage());
+        }
     }
 
     private void loadTable() {
@@ -173,6 +193,10 @@ public class AppointmentPanel extends JPanel {
             List<Appointment> list = appointmentService.listAll();
             List<Customer> customers = customerDAO.findAll();
             List<Vehicle> vehicles = vehicleDAO.findAll();
+            Map<Integer, String> employeeNames = new HashMap<>();
+            for (Employee emp : employeeDAO.findAll()) {
+                employeeNames.put(emp.getEmployeeId(), emp.getFirstName() + " " + emp.getLastName());
+            }
             for (Appointment a : list) {
                 String custName = customers.stream()
                         .filter(c -> c.getCustomerId() == a.getCustomerId())
@@ -184,10 +208,15 @@ public class AppointmentPanel extends JPanel {
                         .findFirst()
                         .map(v -> v.getMake() + " " + v.getModel())
                         .orElse("?");
+                String empLabel = "—";
+                if (a.getEmployeeId() != null) {
+                    empLabel = employeeNames.getOrDefault(a.getEmployeeId(), "#" + a.getEmployeeId());
+                }
                 tableModel.addRow(new Object[]{
                         a.getAppointmentId(),
                         custName,
                         vehicleLabel,
+                        empLabel,
                         a.getAppointmentDate() != null ? a.getAppointmentDate().format(FORMATTER) : "",
                         a.getStatus(),
                         a.getNotes() != null ? a.getNotes() : ""
@@ -201,9 +230,28 @@ public class AppointmentPanel extends JPanel {
     private void selectRowToForm() {
         int row = table.getSelectedRow();
         if (row < 0) return;
-        dateTimeField.setText(String.valueOf(tableModel.getValueAt(row, 3)));
-        statusCombo.setSelectedItem(tableModel.getValueAt(row, 4));
-        notesField.setText(String.valueOf(tableModel.getValueAt(row, 5)));
+        dateTimeField.setText(String.valueOf(tableModel.getValueAt(row, 4)));
+        statusCombo.setSelectedItem(tableModel.getValueAt(row, 5));
+        notesField.setText(String.valueOf(tableModel.getValueAt(row, 6)));
+        int apptId = (Integer) tableModel.getValueAt(row, 0);
+        try {
+            Appointment a = appointmentService.findById(apptId);
+            selectEmployeeById(a != null ? a.getEmployeeId() : null);
+        } catch (Exception ex) {
+            UIHelper.showError(this, "Could not load appointment: " + ex.getMessage());
+        }
+    }
+
+    private void selectEmployeeById(Integer employeeId) {
+        int wantId = employeeId != null ? employeeId : 0;
+        for (int i = 0; i < employeeCombo.getItemCount(); i++) {
+            EmployeeItem ei = employeeCombo.getItemAt(i);
+            if (ei.id == wantId) {
+                employeeCombo.setSelectedIndex(i);
+                return;
+            }
+        }
+        employeeCombo.setSelectedIndex(0);
     }
 
     private void schedule() {
@@ -230,8 +278,10 @@ public class AppointmentPanel extends JPanel {
             return;
         }
         String notes = notesField.getText().trim();
+        EmployeeItem ei = (EmployeeItem) employeeCombo.getSelectedItem();
+        Integer empId = ei != null && ei.id != 0 ? ei.id : null;
         try {
-            appointmentService.scheduleAppointment(ci.id, vi.id, when, notes);
+            appointmentService.scheduleAppointment(ci.id, vi.id, when, notes, empId);
             UIHelper.showMessage(this, "Appointment scheduled.");
             clearForm();
             loadTable();
@@ -240,7 +290,7 @@ public class AppointmentPanel extends JPanel {
         }
     }
 
-    private void updateStatus() {
+    private void updateAppointment() {
         int row = table.getSelectedRow();
         if (row < 0) {
             UIHelper.showError(this, "Select an appointment first.");
@@ -248,9 +298,11 @@ public class AppointmentPanel extends JPanel {
         }
         int id = (Integer) tableModel.getValueAt(row, 0);
         String status = (String) statusCombo.getSelectedItem();
+        EmployeeItem ei = (EmployeeItem) employeeCombo.getSelectedItem();
+        Integer empId = ei != null && ei.id != 0 ? ei.id : null;
         try {
-            appointmentService.updateStatus(id, status);
-            UIHelper.showMessage(this, "Status updated.");
+            appointmentService.updateAppointmentDetails(id, status, empId);
+            UIHelper.showMessage(this, "Appointment updated.");
             loadTable();
         } catch (Exception ex) {
             UIHelper.showError(this, "Update failed: " + ex.getMessage());
@@ -312,10 +364,21 @@ public class AppointmentPanel extends JPanel {
     private void clearForm() {
         customerCombo.setSelectedIndex(0);
         vehicleCombo.setSelectedIndex(0);
+        employeeCombo.setSelectedIndex(0);
         dateTimeField.setText("");
         notesField.setText("");
         statusCombo.setSelectedItem("Scheduled");
         table.clearSelection();
+    }
+
+    private static class EmployeeItem {
+        final int id;
+        private final String label;
+        EmployeeItem(int id, String label) {
+            this.id = id;
+            this.label = label;
+        }
+        @Override public String toString() { return label; }
     }
 
     private static class CustomerItem {

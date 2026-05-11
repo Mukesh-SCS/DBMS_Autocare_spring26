@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +19,9 @@ import com.germantown.autocare.model.Appointment;
  */
 public class AppointmentDAO {
 
-    private static final String INSERT = "INSERT INTO Appointment (Customer_ID, Vehicle_ID, Appointment_Date, Status, Notes) VALUES (?, ?, ?, ?, ?)";
-    private static final String UPDATE_STATUS = "UPDATE Appointment SET Status=? WHERE Appointment_ID=?";
+    private static final String INSERT =
+            "INSERT INTO Appointment (Customer_ID, Vehicle_ID, Employee_ID, Appointment_Date, Status, Notes) VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE_DETAILS = "UPDATE Appointment SET Status=?, Employee_ID=? WHERE Appointment_ID=?";
     private static final String DELETE = "DELETE FROM Appointment WHERE Appointment_ID=?";
     private static final String FIND_BY_ID = "SELECT * FROM Appointment WHERE Appointment_ID=?";
     private static final String FIND_ALL = "SELECT * FROM Appointment ORDER BY Appointment_Date DESC";
@@ -29,9 +31,14 @@ public class AppointmentDAO {
              PreparedStatement ps = conn.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, a.getCustomerId());
             ps.setInt(2, a.getVehicleId());
-            ps.setTimestamp(3, Timestamp.valueOf(a.getAppointmentDate()));
-            ps.setString(4, a.getStatus());
-            ps.setString(5, a.getNotes());
+            if (a.getEmployeeId() != null) {
+                ps.setInt(3, a.getEmployeeId());
+            } else {
+                ps.setNull(3, Types.INTEGER);
+            }
+            ps.setTimestamp(4, Timestamp.valueOf(a.getAppointmentDate()));
+            ps.setString(5, a.getStatus());
+            ps.setString(6, a.getNotes());
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
@@ -44,11 +51,16 @@ public class AppointmentDAO {
         return -1;
     }
 
-    public boolean updateStatus(int appointmentId, String status) throws SQLException {
+    public boolean updateDetails(int appointmentId, String status, Integer employeeId) throws SQLException {
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(UPDATE_STATUS)) {
+             PreparedStatement ps = conn.prepareStatement(UPDATE_DETAILS)) {
             ps.setString(1, status);
-            ps.setInt(2, appointmentId);
+            if (employeeId != null) {
+                ps.setInt(2, employeeId);
+            } else {
+                ps.setNull(2, Types.INTEGER);
+            }
+            ps.setInt(3, appointmentId);
             return ps.executeUpdate() > 0;
         }
     }
@@ -130,6 +142,8 @@ public class AppointmentDAO {
         a.setAppointmentId(rs.getInt("Appointment_ID"));
         a.setCustomerId(rs.getInt("Customer_ID"));
         a.setVehicleId(rs.getInt("Vehicle_ID"));
+        int empCol = rs.getInt("Employee_ID");
+        a.setEmployeeId(rs.wasNull() ? null : empCol);
         Timestamp ts = rs.getTimestamp("Appointment_Date");
         LocalDateTime dt = ts != null ? ts.toLocalDateTime() : null;
         a.setAppointmentDate(dt);
